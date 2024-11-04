@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>What factors impact the rating of a book?</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body,
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <svg height="440" width="500" style="border: 1px solid black;">
+    <g stroke="#6e2c00" fill="#6e2c00">
+
+      <!-- Shelf pillars -->
+      <rect x="150" y="100" width="20" height="300" />
+      <rect x="330" y="100" width="20" height="300" />
+
+      <!-- Horizontal shelves -->
+      <rect x="150" y="400" width="200" height="20" />
+      <rect x="150" y="300" width="200" height="20" />
+      <rect x="150" y="200" width="200" height="20" />
+      <rect x="150" y="100" width="200" height="20" />
+    </g>
+  </svg>
+
+  <script>
+    d3.csv("books.csv").then(data => {
+      console.log(data);
+    });
+  </script>
+</body>
+
+</html>
