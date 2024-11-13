@@ -37,31 +37,34 @@
   <script>
     const requestData = async function () {
       let data = await d3.csv('../data/books.csv');
-      console.log(data)
+      console.log(data);
 
       let num_genres = new Map() // map of genres to # of books
       let genres_books = new Map()
       let genres = ['Romance', 'Mystery', 'Historical Fiction', 'Science Fiction', 'Nonfiction']
 
-      genres.forEach( (g) => {
+      // The books where one of the genres is among the top 5 genres 
+      let top_genre_books = []
+
+      genres.forEach((g) => {
         num_genres.set(g, 0);
       })
 
       data.forEach((d, i) => {
-        let genres_list = d['genres'].slice(2,-2).split("', '") // get list of genres for book
+        let genres_list = d['genres'].slice(2, -2).split("', '") // get list of genres for book
         let len = genres_list.length;
 
         // find first genre that's in top 5 genres
         var i = 0;
         let genre = genres_list[i];
         while (!num_genres.has(genre)) {
-            i += 1;
-            if (i == len) {
-                genre = "";
-                break;
-            } else {
-                genre = genres_list[i];
-            }
+          i += 1;
+          if (i == len) {
+            genre = "";
+            break;
+          } else {
+            genre = genres_list[i];
+          }
         }
 
         // at this point, 'genre' is the genre (within top 5) of the book
@@ -69,14 +72,16 @@
         // fill map with counts of books
         if (genre != "") {
           num_genres.set(genre, num_genres.get(genre) + 1)
-
+          d['top_genre'] = genre;
+          top_genre_books.push(d);
         }
       });
 
       console.log(num_genres);
-      }
+      console.log(top_genre_books);
+    }
 
-      requestData();
+    requestData();
   </script>
 </body>
 
