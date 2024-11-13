@@ -34,6 +34,10 @@
     </g>
   </svg>
 
+  <svg id="pages" width="600" height="400">
+    <!-- <text id="label" x="400" y="5" text-anchor="middle" alignment-baseline="hanging"></text> -->
+  </svg>
+
   <script>
     const requestData = async function () {
       let data = await d3.csv('../data/books.csv');
@@ -68,17 +72,43 @@
         }
 
         // at this point, 'genre' is the genre (within top 5) of the book
+        d['top_genre'] = genre; // adding the top genre as a new field
+
+        // Reformatting some data
+        convert_to_num = ['current_readers', 'num_pages', 'num_ratings', 'num_reviews',
+          'price', 'rating_score', 'want_to_read'];
+        convert_to_num.forEach((category, i) => {
+          d[category] = Number(d[category]);
+        });
+
+        const parseDate = d3.timeParse("%B %e, %Y");
+        d['publication_date'] = parseDate(d['publication_date']);
 
         // fill map with counts of books
         if (genre != "") {
           num_genres.set(genre, num_genres.get(genre) + 1)
-          d['top_genre'] = genre;
           top_genre_books.push(d);
         }
       });
 
       console.log(num_genres);
       console.log(top_genre_books);
+
+      // ----- SCATTERPLOTS -----
+
+      // General dimensions of every scatterplot are the same
+      const pages_svg = d3.select('#pages');
+      // const legend = d3.select('#legend');
+      const width = pages_svg.attr('width');
+      const height = pages_svg.attr('height');
+      const margins = { top: 35, right: 20, bottom: 60, left: 60 };
+      const chartWidth = width - margins.left - margins.right;
+      const chartHeight = height - margins.top - margins.bottom;
+
+      // Ratings vs. number of pages scatterplot
+      let pages_chartArea = pages_svg.append('g')
+        .attr('transform', `translate(${margins.left},${margins.top})`);
+
     }
 
     requestData();
