@@ -5,6 +5,14 @@
   <title>What factors impact the rating of a book?</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: #bbb;
+    }
+
     body,
     html {
       display: flex;
@@ -34,8 +42,8 @@
     </g>
   </svg>
 
-  <svg id="pages" width="600" height="400">
-    <!-- <text id="label" x="400" y="5" text-anchor="middle" alignment-baseline="hanging"></text> -->
+  <svg id="pages" width="600" height="600">
+    <!-- <text id="title" x="400" y="5" text-anchor="middle" alignment-baseline="hanging"></text> -->
   </svg>
 
   <script>
@@ -87,6 +95,10 @@
         // fill map with counts of books
         if (genre != "") {
           num_genres.set(genre, num_genres.get(genre) + 1)
+        }
+
+        // add valid points to the dataset for scatterplots
+        if (genre != "" && d['num_pages'] > 0) {
           top_genre_books.push(d);
         }
       });
@@ -101,14 +113,82 @@
       // const legend = d3.select('#legend');
       const width = pages_svg.attr('width');
       const height = pages_svg.attr('height');
-      const margins = { top: 35, right: 20, bottom: 60, left: 60 };
+      const margins = { top: 40, right: 20, bottom: 60, left: 55 };
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
-      // Ratings vs. number of pages scatterplot
+      // RATINGS VS. NUMBER OF PAGES SCATTERPLOT
       let pages_chartArea = pages_svg.append('g')
         .attr('transform', `translate(${margins.left},${margins.top})`);
 
+      pages_svg.append("text")
+        .attr("class", "title")
+        .attr("text-anchor", "middle")
+        .attr("x", chartWidth / 2 + margins.left)
+        .attr("y", 20)
+        .text("Rating vs. Number of Pages");
+
+      // create scales
+      const pageExtent = d3.extent(top_genre_books, d => d['num_pages']);
+      const pageScale = d3.scaleLinear().domain(pageExtent).range([0, chartWidth]);
+      const ratingExtent = d3.extent(top_genre_books, d => d['rating_score']);
+      const ratingScale = d3.scaleLinear().domain(ratingExtent).range([chartHeight, 0]);
+      const genreScale = d3.scaleOrdinal(d3.schemeTableau10);
+
+      let leftGridlines = d3.axisLeft(ratingScale)
+        .tickSize(-chartWidth - 10)
+        .tickFormat('');
+      pages_svg.append('g')
+        .attr('class', 'y gridlines')
+        .attr('transform', `translate(${margins.left},${margins.top})`)
+        .call(leftGridlines);
+
+      let bottomGridlines = d3.axisBottom(pageScale)
+        .tickSize(-chartHeight - 10)
+        .tickFormat('');
+      pages_svg.append('g')
+        .attr('class', 'x gridlines')
+        .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
+        .call(bottomGridlines);
+
+      let leftAxis = d3.axisLeft(ratingScale);
+      pages_svg.append('g')
+        .attr('class', 'y axis')
+        .attr('transform', `translate(${margins.left},${margins.top})`)
+        .call(leftAxis);
+
+      let bottomAxis = d3.axisBottom(pageScale);
+      pages_svg.append('g')
+        .attr('class', 'x axis')
+        .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
+        .call(bottomAxis);
+
+      // adding labels
+      pages_svg.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("x", -chartHeight / 2 - margins.top)
+        .attr("y", 20)
+        .attr("transform", "rotate(-90)")
+        .text("Rating (out of 5)");
+
+      pages_svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", chartWidth / 2 + margins.left)
+        .attr("y", height - 20)
+        .text("Number of Pages");
+
+      let circles = pages_chartArea.selectAll("circle").data(top_genre_books)
+        .join("circle")
+        .attr("class", d => d['top_genre'])
+        .attr("cx", d => pageScale(d['num_pages']))
+        .attr("cy", d => ratingScale(d['rating_score']))
+        .attr("r", 5)
+        .style("fill", d => genreScale(d['top_genre']))
+        .style("opacity", 0.4);
+
+      pages_chartArea.raise();
     }
 
     requestData();
