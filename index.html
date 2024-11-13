@@ -19,7 +19,21 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
+      margin: 30px;
+    }
+
+    button {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid gray;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      border: 1px solid black;
+      /* Darker blue when clicked */
+      transform: scale(0.98);
+      /* Thicker border on hover */
     }
   </style>
 </head>
@@ -45,6 +59,14 @@
   </div>
 
   <p>The scatterplots for the data: </p>
+  <div>
+    <button id="Romance">Romance</button>
+    <button id="Mystery">Mystery</button>
+    <button id="Historical_Fiction">Historical Fiction</button>
+    <button id="Science_Fiction">Science Fiction</button>
+    <button id="Nonfiction">Nonfiction</button>
+    <button id="Clear">Clear</button>
+  </div>
   <div>
     <svg id="num_pages" width="600" height="600"></svg>
   </div>
@@ -116,22 +138,52 @@
       console.log(top_genre_books);
 
       // ----- SCATTERPLOTS -----
-      createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score');
-      createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score');
-      createScatterplot(top_genre_books, 'price', d3.scaleLinear(), 'rating_score');
+      const genreScale = d3.scaleOrdinal(d3.schemeTableau10);
+      num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
+      publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
+      price_chartArea = createScatterplot(top_genre_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
+
+      const chartAreas = [num_pages_chartArea, publication_date_chartArea, price_chartArea];
+
+      // // legend buttons
+      genres.forEach(genre => {
+        const g = genre.replace(' ', '_');
+        d3.select('#' + g)
+          .style("background-color", genreScale(genre))
+          .on("click", () => {
+            console.log(genre);
+            chartAreas.forEach(c => {
+              c.selectAll("circle." + g)
+                .transition().duration(400)
+                .style("opacity", 0.8);
+
+              c.selectAll("circle:not(." + g + ")")
+                .transition().duration(400)
+                .style("opacity", 0.1);
+            });
+          });
+      })
+
+      d3.select('#Clear')
+        .on("click", () => {
+          console.log("Clear");
+          chartAreas.forEach(c => {
+            c.selectAll("circle")
+              .transition().duration(400)
+              .style("opacity", 0.4);
+          });
+        });
     }
 
-    function createScatterplot(top_genre_books, x_var, x_scale_func, y_var) {
+    function createScatterplot(top_genre_books, x_var, x_scale_func, y_var, genreScale) {
       // General dimensions of every scatterplot are the same
       const svg = d3.select('#' + x_var);
-      // const legend = d3.select('#legend');
       const width = svg.attr('width');
       const height = svg.attr('height');
       const margins = { top: 40, right: 20, bottom: 60, left: 55 };
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
-      // RATINGS VS. NUMBER OF PAGES SCATTERPLOT
       let chartArea = svg.append('g')
         .attr('transform', `translate(${margins.left},${margins.top})`);
 
@@ -140,14 +192,13 @@
         .attr("text-anchor", "middle")
         .attr("x", chartWidth / 2 + margins.left)
         .attr("y", 20)
-        .text(y_var + " vs. " + x_var);
+        .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"));
 
       // create scales
       const xExtent = d3.extent(top_genre_books, d => d[x_var]);
       const xScale = x_scale_func.domain(xExtent).range([0, chartWidth]);
       const yExtent = d3.extent(top_genre_books, d => d[y_var]);
       const yScale = d3.scaleLinear().domain(yExtent).range([chartHeight, 0]);
-      const genreScale = d3.scaleOrdinal(d3.schemeTableau10);
 
       let leftGridlines = d3.axisLeft(yScale)
         .tickSize(-chartWidth - 10)
@@ -184,18 +235,18 @@
         .attr("x", -chartHeight / 2 - margins.top)
         .attr("y", 20)
         .attr("transform", "rotate(-90)")
-        .text(y_var);
+        .text(formatLabel(y_var, "axis"));
 
       svg.append("text")
         .attr("class", "x label")
         .attr("text-anchor", "middle")
         .attr("x", chartWidth / 2 + margins.left)
         .attr("y", height - 20)
-        .text(x_var);
+        .text(formatLabel(x_var, "axis"));
 
       let circles = chartArea.selectAll("circle").data(top_genre_books)
         .join("circle")
-        .attr("class", d => d['top_genre'])
+        .attr("class", d => d['top_genre'].replace(' ', '_'))
         .attr("cx", d => xScale(d[x_var]))
         .attr("cy", d => yScale(d[y_var]))
         .attr("r", 5)
@@ -203,6 +254,20 @@
         .style("opacity", 0.4);
 
       chartArea.raise();
+
+      return chartArea;
+    }
+
+    function formatLabel(label, type) {
+      if (label == "num_pages") {
+        label = "number_of_pages"
+      }
+      formatted = label.toLowerCase()
+        .split('_')
+        .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+        .join(' ');
+
+      return formatted
     }
 
     requestData();
