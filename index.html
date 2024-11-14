@@ -35,6 +35,24 @@
       transform: scale(0.98);
       /* Thicker border on hover */
     }
+
+    .tooltip {
+      visibility: hidden;
+      width: 120px;
+      background-color: black;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 0;
+
+      /* Position the tooltip */
+      position: absolute;
+      z-index: 1;
+    }
+
+    .tooltip:hover {
+      visibility: visible;
+    }
   </style>
 </head>
 
@@ -257,7 +275,38 @@
       chartArea.raise();
 
       // show title/author of book when hovering over circle
-      var label = svg.append("text").attr("id", "label");
+      const tooltipWidth = 100;
+      const tooltipHeight = 45;
+
+      // var label = svg.append("text").attr("id", "label");
+
+      var box = svg.append("span").attr("class", "tooltip");
+
+      // let tooltip = svg.append("g")
+      //   .attr("class", "tooltip")
+      //   .attr("visibility", "hidden");
+
+      // tooltip.append("rect")
+      //   .attr("fill", "black")
+      //   .attr("opacity", 0.9)
+      //   .attr("x", -tooltipWidth / 2.0)
+      //   .attr("y", 0)
+      //   .attr("width", tooltipWidth)
+      //   .attr("height", tooltipHeight)
+      //   .attr("border-radius", 2)
+
+      // let title_txt = tooltip.append("text")
+      //   .attr("fill", "white")
+      //   .attr("text-anchor", "middle")
+      //   .attr("alignment-baseline", "hanging")
+      //   .attr("x", 0)
+      //   .attr("y", 5);
+      // let author_txt = tooltip.append("text")
+      //   .attr("fill", "white")
+      //   .attr("text-anchor", "middle")
+      //   .attr("alignment-baseline", "hanging")
+      //   .attr("x", 0)
+      //   .attr("y", 25);
 
       circles.on("mouseover", function (event) {
         let circle = d3.select(this);
@@ -279,9 +328,18 @@
         console.log("cx:", circle.attr('cx'));
         console.log("cy:", circle.attr('cy'));
 
-        label.text(title + " by " + authors)
-          .attr("x", circle.attr('cx'))
-          .attr("y", circle.attr('cy'));
+        // label.text(title + " by " + authors)
+        //   .attr("x", circle.attr('cx'))
+        //   .attr("y", circle.attr('cy'));
+
+        box.attr("visibility", "visible")
+          .attr("text", title + " by " + authors)
+          .attr("transform", `translate(${circle.attr('cx')},${circle.attr('cy')})`);
+
+        // tooltip.style("visibility", "visible");
+        // title_txt.text(title);
+        // author_txt.text(authors);
+        // tooltip.attr("transform", `translate(${circle.attr('cx')},${circle.attr('cy')})`);
       });
 
       circles.on("mouseout", function () {
@@ -293,7 +351,7 @@
           .style("opacity", 0.4)
           .style("fill", d => genreScale(d['top_genre']));
 
-        label.text("");
+        // label.text("");
       });
 
       return chartArea;
