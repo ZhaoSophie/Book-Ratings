@@ -151,7 +151,7 @@
         d3.select('#' + g)
           .style("background-color", genreScale(genre))
           .on("click", () => {
-            console.log(genre);
+            // console.log(genre);
             chartAreas.forEach(c => {
               c.selectAll("circle." + g)
                 .transition().duration(400)
@@ -166,7 +166,7 @@
 
       d3.select('#Clear')
         .on("click", () => {
-          console.log("Clear");
+          // console.log("Clear");
           chartAreas.forEach(c => {
             c.selectAll("circle")
               .transition().duration(400)
@@ -255,9 +255,55 @@
 
       chartArea.raise();
 
+      // show title/author of book when hovering over circle
+      var label = svg.append("text").attr("id", "label");
+
+      circles.on("mouseover", function (event) {
+        let circle = d3.select(this);
+        // console.log(circle);
+        circle.raise()
+          .transition().duration(200)
+          .attr("r", 8)
+          .attr("stroke-width", 1)
+          .attr("stroke", d => darken(genreScale(d['top_genre']), 30))
+          .style("opacity", 1)
+          .style("fill", d => darken(genreScale(d['top_genre']), 10));
+
+        let book = circle.datum()
+        let title = book['title']
+        let authors = book['authors']
+
+        label.text(title + " by " + authors)
+          .attr("x", event.clientX)
+          .attr("y", event.clientY);
+        // console.log("circle cx: " + circle.getAttribute('cx'));
+        // console.log("circle cy: " + circle.getAttribute('cy'));
+      });
+
+      circles.on("mouseout", function () {
+        let circle = d3.select(this);
+        circle.transition().duration(200)
+          .attr("r", 5)
+          .attr("stroke-width", 1)
+          .attr("stroke", "none")
+          .style("opacity", 0.4)
+          .style("fill", d => genreScale(d['top_genre']));
+
+        label.text("");
+      });
+
       return chartArea;
     }
 
+    // helper function: darken a color
+    // inspired by lighten(color) from Prof. Rzeszotarski
+    function darken(color, amount) {
+      let hclColor = d3.hcl(color);
+      let luma = Math.min(130, hclColor.l - amount);
+      return d3.rgb(d3.hcl(hclColor.h, hclColor.c, luma));
+    }
+
+    // helper function: returns label without _ and capitalized
     function formatLabel(label, type) {
       if (label == "num_pages") {
         label = "number_of_pages"
