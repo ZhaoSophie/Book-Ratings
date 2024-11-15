@@ -5,6 +5,11 @@
   <title>What factors impact the rating of a book?</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
+    div {
+      display: flex;
+      justify-content: center;
+    }
+
     .gridlines line {
       stroke: #bbb;
     }
@@ -53,30 +58,121 @@
     .tooltip:hover {
       visibility: visible;
     }
+
+    .page-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 
 <body>
+  <h1 class="page-title">What factors impact the rating of a book?</h1>
   <div>
-    <svg height="460" width="300" style="border: 1px solid black;">
+    <svg height="600" width="600" style="border: 1px solid black;">
       <g stroke="#6e2c00" fill="#6e2c00">
 
         <!-- Shelf pillars -->
-        <rect x="20" y="60" width="10" height="380" />
-        <rect x="270" y="60" width="10" height="380" />
+        <rect x="30" y="80" width="15" height="500" />
+        <rect x="555" y="80" width="15" height="500" />
 
         <!-- Horizontal shelves -->
-        <rect x="20" y="60" width="260" height="10" />
-        <rect x="20" y="150" width="260" height="10" />
-        <rect x="20" y="240" width="260" height="10" />
-        <rect x="20" y="330" width="260" height="10" />
-        <rect x="20" y="420" width="260" height="10" />
+        <rect x="30" y="80" width="540" height="15" />
+        <rect x="30" y="180" width="540" height="15" />
+        <rect x="30" y="280" width="540" height="15" />
+        <rect x="30" y="380" width="540" height="15" />
+        <rect x="30" y="480" width="540" height="15" />
+        <rect x="30" y="580" width="540" height="15" />
+
+        <!-- Books on shelves -->
+
+
+        <!-- 1st Shelf -->
+        <g fill="#d35400">
+          <rect x="50" y="140" width="40" height="40" />
+          <rect x="100" y="140" width="40" height="40" />
+          <rect x="150" y="140" width="40" height="40" />
+          <rect x="200" y="140" width="40" height="40" />
+          <rect x="250" y="140" width="40" height="40" />
+          <rect x="300" y="140" width="40" height="40" />
+          <rect x="350" y="140" width="40" height="40" />
+          <rect x="400" y="140" width="40" height="40" />
+          <rect x="450" y="140" width="40" height="40" />
+          <rect x="500" y="140" width="40" height="40" />
+        </g>
+
+        <!-- 2rd Shelf -->
+        <g fill="#7e5109">
+          <rect x="50" y="240" width="40" height="40" />
+          <rect x="100" y="240" width="40" height="40" />
+          <rect x="150" y="240" width="40" height="40" />
+          <rect x="200" y="240" width="40" height="40" />
+          <rect x="250" y="240" width="40" height="40" />
+          <rect x="300" y="240" width="40" height="40" />
+          <rect x="350" y="240" width="40" height="40" />
+          <rect x="400" y="240" width="40" height="40" />
+          <rect x="450" y="240" width="40" height="40" />
+          <rect x="500" y="240" width="40" height="40" />
+        </g>
+
+        <!-- 3rd Shelf -->
+        <g fill="#a04000">
+          <rect x="50" y="340" width="40" height="40" />
+          <rect x="100" y="340" width="40" height="40" />
+          <rect x="150" y="340" width="40" height="40" />
+          <rect x="200" y="340" width="40" height="40" />
+          <rect x="250" y="340" width="40" height="40" />
+          <rect x="300" y="340" width="40" height="40" />
+          <rect x="350" y="340" width="40" height="40" />
+          <rect x="400" y="340" width="40" height="40" />
+          <rect x="450" y="340" width="40" height="40" />
+          <rect x="500" y="340" width="40" height="40" />
+        </g>
+
+        <!-- 4th Shelf -->
+        <g fill="#ae2e00">
+          <rect x="50" y="440" width="40" height="40" />
+          <rect x="100" y="440" width="40" height="40" />
+          <rect x="150" y="440" width="40" height="40" />
+          <rect x="200" y="440" width="40" height="40" />
+          <rect x="250" y="440" width="40" height="40" />
+          <rect x="300" y="440" width="40" height="40" />
+          <rect x="350" y="440" width="40" height="40" />
+          <rect x="400" y="440" width="40" height="40" />
+          <rect x="450" y="440" width="40" height="40" />
+          <rect x="500" y="440" width="40" height="40" />
+        </g>
+
+        <!-- 5th Shelf -->
+        <g fill="#6e2c00">
+          <rect x="50" y="540" width="40" height="40" />
+          <rect x="100" y="540" width="40" height="40" />
+          <rect x="150" y="540" width="40" height="40" />
+          <rect x="200" y="540" width="40" height="40" />
+          <rect x="250" y="540" width="40" height="40" />
+          <rect x="300" y="540" width="40" height="40" />
+          <rect x="350" y="540" width="40" height="40" />
+          <rect x="400" y="540" width="40" height="40" />
+          <rect x="450" y="540" width="40" height="40" />
+          <rect x="500" y="540" width="40" height="40" />
+        </g>
 
       </g>
     </svg>
   </div>
 
-  <p>The scatterplots for the data: </p>
+
+
+
+  <h2>The scatterplots for the data: </h2>
   <div>
     <button id="Romance">Romance</button>
     <button id="Mystery">Mystery</button>
