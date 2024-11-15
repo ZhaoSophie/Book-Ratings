@@ -199,11 +199,11 @@
     const bookWidth = 23;
     const spaceBetweenBooks = 10;
     const bookHeight = 70;
-    const numBooks = 15
+    const booksPerShelf = 15
     const shelfHeight = 100;
 
     const requestData = async function () {
-      let data = await d3.csv('../data/books.csv');
+      let data = await d3.csv('data/books.csv');
       console.log("data", data);
 
       let num_genres = new Map() // map of genres to # of books
@@ -244,7 +244,7 @@
           d[category] = Number(d[category]);
         });
 
-        const parseDate = d3.timeParse("%B %e, %Y");
+        const parseDate = d3.timeParse("%d-%b-%y");
         d['publication_date'] = parseDate(d['publication_date']);
 
         // fill map with counts of books
@@ -262,22 +262,72 @@
       console.log("top_genre_books", top_genre_books);
 
       // ----- Books on Shelf -----
+
+      // Genre color scale
       const genreColors = d3.schemeTableau10;
-      const genreScale = d3.scaleOrdinal(genreColors);
-      for (let i = 0; i < 5; i++){
-        for (let j = 0; j < numBooks; j ++){
-          let xPos = 55+j*(bookWidth+spaceBetweenBooks)
-          let yPos = 115+i*(shelfHeight)
-          let fillColor = genreColors[i]
+      const genreScale = d3.scaleOrdinal(genres, genreColors);
+      const minRating = d3.min( data, d => d.rating_score );
+      const maxRating = d3.max( data, d => d.rating_score );
+      const bookLightness = d3.scaleLinear().domain([minRating, maxRating])
+                                            .range([0.3, 1])
+      // subset of books to be added to the bookshelf
+      const booksForShelf = []
+
+      /*
+      for each genre, take the first 15 books that have this genre as its top genre
+      Note: dataset is sorted by highest number of reviews first
+      */
+      genres.forEach(genre => {
+        let booksInGenre = top_genre_books.filter(d => (d.top_genre === genre))
+                                          .slice(0, booksPerShelf)
+        booksInGenre.sort(function(a, b){
+          return a["publication_date"] - b["publication_date"]
+        });
+        booksForShelf.push(booksInGenre);
+      })
+      console.log("booksForShelf", booksForShelf);
+
+      // get average rating per shelf
+      const genreRatingsMap = new Map();
+      booksForShelf.forEach(genre => {
+        let totalRating = 0
+        for (let i = 0; i < genre.length; i++){
+          totalRating += genre[i].rating_score
+        }
+        genreRatingsMap.set(genre[0].top_genre, totalRating/genre.length)
+      })
+
+      // turn booksForShelf into a map of genres to the books in the genre
+      const shelfMap = new Map()
+      booksForShelf.forEach(array => {
+        shelfMap.set(array[0].top_genre, array)
+      })
+      console.log("shelfMap", shelfMap)
+
+      // sort genre list with ratings by highest ratings
+      const genreRatingsArr = [...genreRatingsMap.entries()].sort((a, b) => b[1] - a[1])
+      console.log("genreRatingsArr", genreRatingsArr)
+
+      // add books to the shelf
+      let index = 0
+      genreRatingsArr.forEach(genreGroup => {
+        for (let j = 0; j < booksPerShelf; j++){
+          let genre = genreGroup[0];
+          let book = shelfMap.get(genre)[j];
+          let xPos = 55+j*(bookWidth+spaceBetweenBooks);
+          let yPos = 115+index*(shelfHeight);
+          let bookColor = d3.hsl(genreScale(book.top_genre));
+          bookColor.l = bookLightness(book.rating_score);
 
           svg.append("rect")
               .attr("x", xPos)
               .attr("y", yPos)
               .attr("width", bookWidth)
               .attr("height", bookHeight)
-              .attr("fill", fillColor)
+              .attr("fill", bookColor);
         }
-      }
+        index ++;
+      })
 
       // ----- SCATTERPLOTS -----
       num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
@@ -447,9 +497,9 @@
           .style("fill", d => darken(genreScale(d['top_genre']), 10));
 
         // for debugging purposes
-        console.log(circle.node());
-        console.log("cx:", circle.attr('cx'));
-        console.log("cy:", circle.attr('cy'));
+        // console.log(circle.node());
+        // console.log("cx:", circle.attr('cx'));
+        // console.log("cy:", circle.attr('cy'));
 
         // label.text(title + " by " + authors)
         //   .attr("x", circle.attr('cx'))
