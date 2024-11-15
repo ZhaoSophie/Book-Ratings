@@ -94,9 +94,8 @@
 
         <!-- Books on shelves -->
 
-
         <!-- 1st Shelf -->
-        <g fill="#d35400">
+        <!-- <g fill="#d35400">
           <rect x="50" y="140" width="40" height="40" />
           <rect x="100" y="140" width="40" height="40" />
           <rect x="150" y="140" width="40" height="40" />
@@ -107,10 +106,10 @@
           <rect x="400" y="140" width="40" height="40" />
           <rect x="450" y="140" width="40" height="40" />
           <rect x="500" y="140" width="40" height="40" />
-        </g>
+        </g> -->
 
         <!-- 2rd Shelf -->
-        <g fill="#7e5109">
+        <!-- <g fill="#7e5109">
           <rect x="50" y="240" width="40" height="40" />
           <rect x="100" y="240" width="40" height="40" />
           <rect x="150" y="240" width="40" height="40" />
@@ -121,10 +120,10 @@
           <rect x="400" y="240" width="40" height="40" />
           <rect x="450" y="240" width="40" height="40" />
           <rect x="500" y="240" width="40" height="40" />
-        </g>
+        </g> -->
 
         <!-- 3rd Shelf -->
-        <g fill="#a04000">
+        <!-- <g fill="#a04000">
           <rect x="50" y="340" width="40" height="40" />
           <rect x="100" y="340" width="40" height="40" />
           <rect x="150" y="340" width="40" height="40" />
@@ -135,10 +134,10 @@
           <rect x="400" y="340" width="40" height="40" />
           <rect x="450" y="340" width="40" height="40" />
           <rect x="500" y="340" width="40" height="40" />
-        </g>
+        </g> -->
 
         <!-- 4th Shelf -->
-        <g fill="#ae2e00">
+        <!-- <g fill="#ae2e00">
           <rect x="50" y="440" width="40" height="40" />
           <rect x="100" y="440" width="40" height="40" />
           <rect x="150" y="440" width="40" height="40" />
@@ -149,10 +148,10 @@
           <rect x="400" y="440" width="40" height="40" />
           <rect x="450" y="440" width="40" height="40" />
           <rect x="500" y="440" width="40" height="40" />
-        </g>
+        </g> -->
 
         <!-- 5th Shelf -->
-        <g fill="#6e2c00">
+        <!-- <g fill="#6e2c00">
           <rect x="50" y="540" width="40" height="40" />
           <rect x="100" y="540" width="40" height="40" />
           <rect x="150" y="540" width="40" height="40" />
@@ -163,7 +162,7 @@
           <rect x="400" y="540" width="40" height="40" />
           <rect x="450" y="540" width="40" height="40" />
           <rect x="500" y="540" width="40" height="40" />
-        </g>
+        </g> -->
 
       </g>
     </svg>
@@ -192,9 +191,20 @@
   </div>
 
   <script>
+
+    const svg = d3.select("svg");
+    const width = svg.attr("width");
+    const height = svg.attr("height");
+
+    const bookWidth = 23;
+    const spaceBetweenBooks = 10;
+    const bookHeight = 70;
+    const numBooks = 15
+    const shelfHeight = 100;
+
     const requestData = async function () {
       let data = await d3.csv('../data/books.csv');
-      console.log(data);
+      console.log("data", data);
 
       let num_genres = new Map() // map of genres to # of books
       let genres_books = new Map()
@@ -248,11 +258,28 @@
         }
       });
 
-      console.log(num_genres);
-      console.log(top_genre_books);
+      console.log("num_genres", num_genres);
+      console.log("top_genre_books", top_genre_books);
+
+      // ----- Books on Shelf -----
+      const genreColors = d3.schemeTableau10;
+      const genreScale = d3.scaleOrdinal(genreColors);
+      for (let i = 0; i < 5; i++){
+        for (let j = 0; j < numBooks; j ++){
+          let xPos = 55+j*(bookWidth+spaceBetweenBooks)
+          let yPos = 115+i*(shelfHeight)
+          let fillColor = genreColors[i]
+
+          svg.append("rect")
+              .attr("x", xPos)
+              .attr("y", yPos)
+              .attr("width", bookWidth)
+              .attr("height", bookHeight)
+              .attr("fill", fillColor)
+        }
+      }
 
       // ----- SCATTERPLOTS -----
-      const genreScale = d3.scaleOrdinal(d3.schemeTableau10);
       num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
       publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
       price_chartArea = createScatterplot(top_genre_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
