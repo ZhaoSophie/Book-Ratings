@@ -92,84 +92,9 @@
         <rect x="30" y="480" width="540" height="15" />
         <rect x="30" y="580" width="540" height="15" />
 
-        <!-- Books on shelves -->
-
-        <!-- 1st Shelf -->
-        <!-- <g fill="#d35400">
-          <rect x="50" y="140" width="40" height="40" />
-          <rect x="100" y="140" width="40" height="40" />
-          <rect x="150" y="140" width="40" height="40" />
-          <rect x="200" y="140" width="40" height="40" />
-          <rect x="250" y="140" width="40" height="40" />
-          <rect x="300" y="140" width="40" height="40" />
-          <rect x="350" y="140" width="40" height="40" />
-          <rect x="400" y="140" width="40" height="40" />
-          <rect x="450" y="140" width="40" height="40" />
-          <rect x="500" y="140" width="40" height="40" />
-        </g> -->
-
-        <!-- 2rd Shelf -->
-        <!-- <g fill="#7e5109">
-          <rect x="50" y="240" width="40" height="40" />
-          <rect x="100" y="240" width="40" height="40" />
-          <rect x="150" y="240" width="40" height="40" />
-          <rect x="200" y="240" width="40" height="40" />
-          <rect x="250" y="240" width="40" height="40" />
-          <rect x="300" y="240" width="40" height="40" />
-          <rect x="350" y="240" width="40" height="40" />
-          <rect x="400" y="240" width="40" height="40" />
-          <rect x="450" y="240" width="40" height="40" />
-          <rect x="500" y="240" width="40" height="40" />
-        </g> -->
-
-        <!-- 3rd Shelf -->
-        <!-- <g fill="#a04000">
-          <rect x="50" y="340" width="40" height="40" />
-          <rect x="100" y="340" width="40" height="40" />
-          <rect x="150" y="340" width="40" height="40" />
-          <rect x="200" y="340" width="40" height="40" />
-          <rect x="250" y="340" width="40" height="40" />
-          <rect x="300" y="340" width="40" height="40" />
-          <rect x="350" y="340" width="40" height="40" />
-          <rect x="400" y="340" width="40" height="40" />
-          <rect x="450" y="340" width="40" height="40" />
-          <rect x="500" y="340" width="40" height="40" />
-        </g> -->
-
-        <!-- 4th Shelf -->
-        <!-- <g fill="#ae2e00">
-          <rect x="50" y="440" width="40" height="40" />
-          <rect x="100" y="440" width="40" height="40" />
-          <rect x="150" y="440" width="40" height="40" />
-          <rect x="200" y="440" width="40" height="40" />
-          <rect x="250" y="440" width="40" height="40" />
-          <rect x="300" y="440" width="40" height="40" />
-          <rect x="350" y="440" width="40" height="40" />
-          <rect x="400" y="440" width="40" height="40" />
-          <rect x="450" y="440" width="40" height="40" />
-          <rect x="500" y="440" width="40" height="40" />
-        </g> -->
-
-        <!-- 5th Shelf -->
-        <!-- <g fill="#6e2c00">
-          <rect x="50" y="540" width="40" height="40" />
-          <rect x="100" y="540" width="40" height="40" />
-          <rect x="150" y="540" width="40" height="40" />
-          <rect x="200" y="540" width="40" height="40" />
-          <rect x="250" y="540" width="40" height="40" />
-          <rect x="300" y="540" width="40" height="40" />
-          <rect x="350" y="540" width="40" height="40" />
-          <rect x="400" y="540" width="40" height="40" />
-          <rect x="450" y="540" width="40" height="40" />
-          <rect x="500" y="540" width="40" height="40" />
-        </g> -->
-
       </g>
     </svg>
   </div>
-
-
-
 
   <h2>The scatterplots for the data: </h2>
   <div>
@@ -269,7 +194,7 @@
       const minRating = d3.min( data, d => d.rating_score );
       const maxRating = d3.max( data, d => d.rating_score );
       const bookLightness = d3.scaleLinear().domain([minRating, maxRating])
-                                            .range([0.3, 1])
+                                            .range([1.25, 0.3])
       // subset of books to be added to the bookshelf
       const booksForShelf = []
 
@@ -309,26 +234,121 @@
       console.log("genreRatingsArr", genreRatingsArr)
 
       // add books to the shelf
-      let index = 0
-      genreRatingsArr.forEach(genreGroup => {
-        for (let j = 0; j < booksPerShelf; j++){
-          let genre = genreGroup[0];
-          let book = shelfMap.get(genre)[j];
-          let xPos = 55+j*(bookWidth+spaceBetweenBooks);
-          let yPos = 115+index*(shelfHeight);
-          let bookColor = d3.hsl(genreScale(book.top_genre));
-          bookColor.l = bookLightness(book.rating_score);
 
-          svg.append("rect")
-              .attr("x", xPos)
-              .attr("y", yPos)
-              .attr("width", bookWidth)
-              .attr("height", bookHeight)
-              .attr("fill", bookColor);
+      let shelves = svg.selectAll("shelf")
+                       .data(genreRatingsArr)
+                       .join("g")
+                       .attr("class", "shelf")
+                       .attr("transform", (d, i) => `translate(0, ${115 + i * shelfHeight})`);
+      
+      let rectangles = shelves.selectAll("rect")
+                              .data(d => shelfMap.get(d[0]))
+                              .join("rect")
+                              .attr("x", (d, i) => 55 + i * (bookWidth + spaceBetweenBooks))
+                              .attr("y", 0)
+                              .attr("width", bookWidth)
+                              .attr("height", bookHeight)
+                              .attr("fill", d => {
+                                let bookColor = d3.hsl(genreScale(d.top_genre));
+                                bookColor.l = bookLightness(d.rating_score);
+                                return bookColor;
+                              });
+      
+      // interactivity for books
+
+      function textCutoff(text, maxLength){
+        if (text.length > maxLength){
+          return text.substring(0, 28).concat("...")
+        } else {
+          return text
         }
-        index ++;
-      })
+      }
 
+      // created tan label when mouse hovers over book
+      const label = svg.append("g")
+                       .style("visibility", "hidden")
+                       
+      label.append("rect")
+           .attr("width", 250)
+           .attr("height", 110)
+           .attr("rx", 10)
+           .attr("ry", 10)
+           .attr("fill", "#dfd0c0")
+           .attr("stroke", "black");
+
+      label.append("text")
+           .attr("id", "labelTitle")
+           .attr("x", 10)
+           .attr("y", 20)
+           .style("font-size", "14px")
+           .style("font-weight", "bold");
+
+      label.append("text")
+           .attr("id", "labelAuthors")
+           .attr("x", 10)
+           .attr("y", 40)
+           .style("font-size", "12px");
+
+      label.append("text")
+           .attr("id", "labelGenre")
+           .attr("x", 10)
+           .attr("y", 60)
+           .style("font-size", "12px");
+      
+      label.append("text")
+           .attr("id", "labelRating")
+           .attr("x", 10)
+           .attr("y", 80)
+           .style("font-size", "12px");
+      
+      label.append("text")
+           .attr("id", "labelDate")
+           .attr("x", 10)
+           .attr("y", 100)
+           .style("font-size", "12px");
+      
+      const parseYear = d3.timeFormat("%Y");
+      // mouseover
+      rectangles.on("mouseover", function (event){
+        let book = d3.select(this).datum();
+
+        d3.select(this)
+          .transition().duration(200)
+          .attr("stroke", "black")
+          .attr("stroke-width", 3);
+      
+        label.select("#labelTitle").text(`Title: ${textCutoff(book.title, 30)}`);
+        label.select("#labelAuthors").text(`Authors: ${book.authors}`);
+        label.select("#labelGenre").text(`Genre: ${book.top_genre}`);
+        label.select("#labelRating").text(`Rating: ${book.rating_score}`);
+        label.select("#labelDate").text(`Publication Year: ${parseYear(book.publication_date)}`);
+        label.style("visibility", "visible");
+      });
+
+      // label follows mouse
+      rectangles.on("mousemove", function (event) {
+        const [mouseX, mouseY] = d3.pointer(event, svg.node());
+
+        if (mouseX > width/2){
+          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 50})`);
+        } else {
+          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 50})`);
+        }
+        
+      });
+
+      // mouseout
+      rectangles.on("mouseout", function (event){
+        let book = d3.select(this).datum();
+
+        d3.select(this)
+          .transition().duration(200)
+          .attr("stroke", "none")
+          .attr("stroke-width", 0);
+      
+        label.style("visibility", "hidden");
+      });
+      
       // ----- SCATTERPLOTS -----
       num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
       publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
@@ -497,9 +517,9 @@
           .style("fill", d => darken(genreScale(d['top_genre']), 10));
 
         // for debugging purposes
-        // console.log(circle.node());
-        // console.log("cx:", circle.attr('cx'));
-        // console.log("cy:", circle.attr('cy'));
+        console.log(circle.node());
+        console.log("cx:", circle.attr('cx'));
+        console.log("cy:", circle.attr('cy'));
 
         // label.text(title + " by " + authors)
         //   .attr("x", circle.attr('cx'))
