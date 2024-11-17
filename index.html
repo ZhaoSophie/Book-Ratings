@@ -124,7 +124,7 @@
     const spaceBetweenBooks = 1;
     const bookHeight = 70;
     const booksPerShelf = 35;
-    const bookWidth = (width-2*55)/booksPerShelf - 1;
+    const bookWidth = (width - 2 * 55) / booksPerShelf - 1;
     const shelfHeight = 100;
 
     const requestData = async function () {
@@ -180,7 +180,7 @@
         }
 
         // add valid points to the dataset for scatterplots
-        if (genre != "" && d['num_pages'] > 0 && parseYear(d['publication_date']) <= 2024 ) {
+        if (genre != "" && d['num_pages'] > 0 && parseYear(d['publication_date']) <= 2024) {
           top_genre_books.push(d);
         }
       });
@@ -193,10 +193,10 @@
       // Genre color scale
       const genreColors = d3.schemeTableau10;
       const genreScale = d3.scaleOrdinal(genres, genreColors);
-      const minRating = d3.min( data, d => d.rating_score );
-      const maxRating = d3.max( data, d => d.rating_score );
+      const minRating = d3.min(data, d => d.rating_score);
+      const maxRating = d3.max(data, d => d.rating_score);
       const bookLightness = d3.scaleLinear().domain([minRating, maxRating])
-                                            .range([1.5, 0.1])
+        .range([1.5, 0.1])
       // subset of books to be added to the bookshelf
       const booksForShelf = []
 
@@ -206,8 +206,8 @@
       */
       genres.forEach(genre => {
         let booksInGenre = top_genre_books.filter(d => (d.top_genre === genre))
-                                          .slice(0, booksPerShelf)
-        booksInGenre.sort(function(a, b){
+          .slice(0, booksPerShelf)
+        booksInGenre.sort(function (a, b) {
           return a["publication_date"] - b["publication_date"]
         });
         booksForShelf.push(booksInGenre);
@@ -218,10 +218,10 @@
       const genreRatingsMap = new Map();
       booksForShelf.forEach(genre => {
         let totalRating = 0
-        for (let i = 0; i < genre.length; i++){
+        for (let i = 0; i < genre.length; i++) {
           totalRating += genre[i].rating_score
         }
-        genreRatingsMap.set(genre[0].top_genre, totalRating/genre.length)
+        genreRatingsMap.set(genre[0].top_genre, totalRating / genre.length)
       })
 
       // turn booksForShelf into a map of genres to the books in the genre
@@ -238,89 +238,105 @@
       // add books to the shelf
 
       let shelves = svg.selectAll("shelf")
-                       .data(genreRatingsArr)
-                       .join("g")
-                       .attr("class", "shelf")
-                       .attr("transform", (d, i) => `translate(0, ${115 + i * shelfHeight})`);
-      
+        .data(genreRatingsArr)
+        .join("g")
+        .attr("class", "shelf")
+        .attr("transform", (d, i) => `translate(0, ${115 + i * shelfHeight})`);
+
       let rectangles = shelves.selectAll("rect")
-                              .data(d => shelfMap.get(d[0]))
-                              .join("rect")
-                              .attr("x", (d, i) => 55 + i * (bookWidth + spaceBetweenBooks))
-                              .attr("y", 0)
-                              .attr("width", bookWidth)
-                              .attr("height", bookHeight)
-                              .attr("fill", d => {
-                                let bookColor = d3.hsl(genreScale(d.top_genre));
-                                bookColor.l = bookLightness(d.rating_score);
-                                return bookColor;
-                              })
-                              .attr("stroke", "black")
-                              .attr("stroke-width", 0.3);
-      
+        .data(d => shelfMap.get(d[0]))
+        .join("rect")
+        .attr("x", (d, i) => 55 + i * (bookWidth + spaceBetweenBooks))
+        .attr("y", 0)
+        .attr("width", bookWidth)
+        .attr("height", bookHeight)
+        .attr("fill", d => {
+          let bookColor = d3.hsl(genreScale(d.top_genre));
+          bookColor.l = bookLightness(d.rating_score);
+          return bookColor;
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.3);
+
       // interactivity for books
 
-      function textCutoff(text, maxLength){
-        if (text.length > maxLength){
+      function textCutoff(text, maxLength) {
+        if (text.length > maxLength) {
           return text.substring(0, 28).concat("...")
         } else {
           return text
         }
       }
 
+      // Adds labels for each shelf which genre the books are
+      function addText(genre, shelfposition = 110) {
+        svg.append("text")
+          .attr("x", 50)
+          .attr("y", shelfposition)
+          .text(genre)
+          .style("font-size", "14px")
+          .style("font-weight", "bold");
+      }
+
+      let shelfposition = 110;
+      genreRatingsArr.forEach(genre => {
+        addText(genre[0], shelfposition);
+        shelfposition += 100;
+      });
+
       // created tan label when mouse hovers over book
       const label = svg.append("g")
-                       .style("visibility", "hidden")
-                       
+        .style("visibility", "hidden")
+
       label.append("rect")
-           .attr("width", 250)
-           .attr("height", 110)
-           .attr("rx", 10)
-           .attr("ry", 10)
-           .attr("fill", "#dfd0c0")
-           .attr("stroke", "black");
+        .attr("width", 250)
+        .attr("height", 110)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill", "#dfd0c0")
+        .attr("stroke", "black");
 
       label.append("text")
-           .attr("id", "labelTitle")
-           .attr("x", 10)
-           .attr("y", 20)
-           .style("font-size", "14px")
-           .style("font-weight", "bold");
+        .attr("id", "labelTitle")
+        .attr("x", 10)
+        .attr("y", 20)
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
 
       label.append("text")
-           .attr("id", "labelAuthors")
-           .attr("x", 10)
-           .attr("y", 40)
-           .style("font-size", "12px");
+        .attr("id", "labelAuthors")
+        .attr("x", 10)
+        .attr("y", 40)
+        .style("font-size", "12px");
 
       label.append("text")
-           .attr("id", "labelGenre")
-           .attr("x", 10)
-           .attr("y", 60)
-           .style("font-size", "12px");
-      
+        .attr("id", "labelGenre")
+        .attr("x", 10)
+        .attr("y", 60)
+        .style("font-size", "12px");
+
       label.append("text")
-           .attr("id", "labelRating")
-           .attr("x", 10)
-           .attr("y", 80)
-           .style("font-size", "12px");
-      
+        .attr("id", "labelRating")
+        .attr("x", 10)
+        .attr("y", 80)
+        .style("font-size", "12px");
+
       label.append("text")
-           .attr("id", "labelDate")
-           .attr("x", 10)
-           .attr("y", 100)
-           .style("font-size", "12px");
-      
+        .attr("id", "labelDate")
+        .attr("x", 10)
+        .attr("y", 100)
+        .style("font-size", "12px");
+
       const parseYear = d3.timeFormat("%Y");
       // mouseover
-      rectangles.on("mouseover", function (event){
+      rectangles.on("mouseover", function (event) {
         let book = d3.select(this).datum();
 
         d3.select(this)
           .transition().duration(200)
           .attr("stroke", "black")
           .attr("stroke-width", 3);
-      
+
         label.select("#labelTitle").text(`Title: ${textCutoff(book.title, 30)}`);
         label.select("#labelAuthors").text(`Author: ${book.authors}`);
         label.select("#labelGenre").text(`Genre: ${book.top_genre}`);
@@ -333,26 +349,26 @@
       rectangles.on("mousemove", function (event) {
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
 
-        if (mouseX > width/2){
+        if (mouseX > width / 2) {
           label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 50})`);
         } else {
           label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 50})`);
         }
-        
+
       });
 
       // mouseout
-      rectangles.on("mouseout", function (event){
+      rectangles.on("mouseout", function (event) {
         let book = d3.select(this).datum();
 
         d3.select(this)
           .transition().duration(200)
           .attr("stroke", "black")
           .attr("stroke-width", 0.3);
-      
+
         label.style("visibility", "hidden");
       });
-      
+
       // ----- SCATTERPLOTS -----
       num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
       publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
