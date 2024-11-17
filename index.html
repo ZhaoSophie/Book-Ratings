@@ -121,14 +121,14 @@
     const width = svg.attr("width");
     const height = svg.attr("height");
 
-    const bookWidth = 23;
-    const spaceBetweenBooks = 10;
+    const spaceBetweenBooks = 1;
     const bookHeight = 70;
-    const booksPerShelf = 15
+    const booksPerShelf = 35;
+    const bookWidth = (width-2*55)/booksPerShelf - 1;
     const shelfHeight = 100;
 
     const requestData = async function () {
-      let data = await d3.csv('data/books.csv');
+      let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
       console.log("data", data);
 
       let num_genres = new Map() // map of genres to # of books
@@ -169,8 +169,10 @@
           d[category] = Number(d[category]);
         });
 
+        // date format from excel: e.g. "13-Jun-17"
         const parseDate = d3.timeParse("%d-%b-%y");
         d['publication_date'] = parseDate(d['publication_date']);
+        const parseYear = d3.timeFormat("%Y");
 
         // fill map with counts of books
         if (genre != "") {
@@ -178,7 +180,7 @@
         }
 
         // add valid points to the dataset for scatterplots
-        if (genre != "" && d['num_pages'] > 0) {
+        if (genre != "" && d['num_pages'] > 0 && parseYear(d['publication_date']) <= 2024 ) {
           top_genre_books.push(d);
         }
       });
@@ -194,7 +196,7 @@
       const minRating = d3.min( data, d => d.rating_score );
       const maxRating = d3.max( data, d => d.rating_score );
       const bookLightness = d3.scaleLinear().domain([minRating, maxRating])
-                                            .range([1.25, 0.3])
+                                            .range([1.5, 0.1])
       // subset of books to be added to the bookshelf
       const booksForShelf = []
 
@@ -252,7 +254,9 @@
                                 let bookColor = d3.hsl(genreScale(d.top_genre));
                                 bookColor.l = bookLightness(d.rating_score);
                                 return bookColor;
-                              });
+                              })
+                              .attr("stroke", "black")
+                              .attr("stroke-width", 0.3);
       
       // interactivity for books
 
@@ -318,7 +322,7 @@
           .attr("stroke-width", 3);
       
         label.select("#labelTitle").text(`Title: ${textCutoff(book.title, 30)}`);
-        label.select("#labelAuthors").text(`Authors: ${book.authors}`);
+        label.select("#labelAuthors").text(`Author: ${book.authors}`);
         label.select("#labelGenre").text(`Genre: ${book.top_genre}`);
         label.select("#labelRating").text(`Rating: ${book.rating_score}`);
         label.select("#labelDate").text(`Publication Year: ${parseYear(book.publication_date)}`);
@@ -343,8 +347,8 @@
 
         d3.select(this)
           .transition().duration(200)
-          .attr("stroke", "none")
-          .attr("stroke-width", 0);
+          .attr("stroke", "black")
+          .attr("stroke-width", 0.3);
       
         label.style("visibility", "hidden");
       });
