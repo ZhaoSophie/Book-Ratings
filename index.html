@@ -122,10 +122,11 @@
     const height = svg.attr("height");
 
     const spaceBetweenBooks = 1;
-    const bookHeight = 70;
-    const booksPerShelf = 35;
+    const booksPerShelf = 50;
     const bookWidth = (width - 2 * 55) / booksPerShelf - 1;
     const shelfHeight = 100;
+    const minHeight = bookWidth*2;
+    const maxHeight = shelfHeight - 20;
 
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
@@ -193,10 +194,7 @@
       // Genre color scale
       const genreColors = d3.schemeTableau10;
       const genreScale = d3.scaleOrdinal(genres, genreColors);
-      const minRating = d3.min(data, d => d.rating_score);
-      const maxRating = d3.max(data, d => d.rating_score);
-      const bookLightness = d3.scaleLinear().domain([minRating, maxRating])
-        .range([1.5, 0.1])
+
       // subset of books to be added to the bookshelf
       const booksForShelf = []
 
@@ -235,6 +233,14 @@
       const genreRatingsArr = [...genreRatingsMap.entries()].sort((a, b) => b[1] - a[1])
       console.log("genreRatingsArr", genreRatingsArr)
 
+      const minRating = d3.min(booksForShelf.flat(), d => d.rating_score);
+      const maxRating = d3.max(booksForShelf.flat(), d => d.rating_score);
+      const heightScale = d3.scaleLinear().domain([minRating, maxRating])
+                                          .range([minHeight, maxHeight])
+      const minRatingAll = d3.min(data, d => d.rating_score);
+      const maxRatingAll = d3.max(data, d => d.rating_score);
+      const bookLightness = d3.scaleLinear().domain([minRatingAll, maxRatingAll])
+                                             .range([1.5, 0.1])
       // add books to the shelf
 
       let shelves = svg.selectAll("shelf")
@@ -247,9 +253,9 @@
         .data(d => shelfMap.get(d[0]))
         .join("rect")
         .attr("x", (d, i) => 55 + i * (bookWidth + spaceBetweenBooks))
-        .attr("y", 0)
+        .attr("y", d => shelfHeight - 30 - heightScale(d.rating_score))
         .attr("width", bookWidth)
-        .attr("height", bookHeight)
+        .attr("height", d => heightScale(d.rating_score))
         .attr("fill", d => {
           let bookColor = d3.hsl(genreScale(d.top_genre));
           bookColor.l = bookLightness(d.rating_score);
@@ -349,10 +355,11 @@
       rectangles.on("mousemove", function (event) {
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
 
+        let mouseXTrans
         if (mouseX > width / 2) {
-          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 50})`);
+          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 90})`);
         } else {
-          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 50})`);
+          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 90})`);
         }
 
       });
