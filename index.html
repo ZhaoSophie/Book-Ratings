@@ -41,23 +41,6 @@
       /* Thicker border on hover */
     }
 
-    .tooltip {
-      visibility: hidden;
-      width: 120px;
-      background-color: black;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 0;
-
-      /* Position the tooltip */
-      position: absolute;
-      z-index: 1;
-    }
-
-    .tooltip:hover {
-      visibility: visible;
-    }
 
     .page-title {
       font-size: 2.5rem;
@@ -125,8 +108,109 @@
     const booksPerShelf = 50;
     const bookWidth = (width - 2 * 55) / booksPerShelf - 1;
     const shelfHeight = 100;
-    const minHeight = bookWidth*2;
+    const minHeight = bookWidth * 2;
     const maxHeight = shelfHeight - 20;
+
+    // helper function: interactivity for books
+    function textCutoff(text, maxLength) {
+      if (text.length > maxLength) {
+        return text.substring(0, 28).concat("...")
+      } else {
+        return text
+      }
+    }
+
+    // helper functioN: adds labels for each shelf which genre the books are
+    function addText(genre, shelfposition = 110) {
+      svg.append("text")
+        .attr("x", 50)
+        .attr("y", shelfposition)
+        .text(genre)
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
+    }
+
+    // helper function: one compact function that parses all dates/times/years
+    // possible toFormats: 'year' i.e. 2024, 'date' i.e. Tue Jun 13 2017 00:00:00 GMT-0400 (Eastern Daylight Time) 
+    function parseTime(date, toFormat) {
+      let parser = d3.timeFormat();
+      if (toFormat == 'year') {
+        parser = d3.timeFormat("%Y");
+      }
+      else if (toFormat == 'date') {
+        parser = d3.timeParse("%d-%b-%y");
+      }
+      else if (toFormat == 'str') {
+        parser = d3.utcFormat("%B %d, %Y");
+      }
+      return parser(date);
+    }
+
+
+    // helper function: darken a color
+    // inspired by lighten(color) from Prof. Rzeszotarski
+    function darken(color, amount) {
+      let hclColor = d3.hcl(color);
+      let luma = Math.min(130, hclColor.l - amount);
+      return d3.rgb(d3.hcl(hclColor.h, hclColor.c, luma));
+    }
+
+    // helper function: returns label without _ and capitalized
+    function formatLabel(text, type) {
+      if (text == "num_pages") {
+        text = "number_of_pages"
+      }
+      formatted = text.toLowerCase()
+        .split('_')
+        .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+        .join(' ');
+
+      return formatted
+    }
+
+    // helper function: creates rect/text for the hover label over books/circles
+    function createHoverLabel(label) {
+      label.append("rect")
+        .attr("width", 250)
+        .attr("height", 110)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("fill", "#dfd0c0")
+        .attr("stroke", "black");
+
+      label.append("text")
+        .attr("id", "labelTitle")
+        .attr("x", 10)
+        .attr("y", 20)
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
+
+      label.append("text")
+        .attr("id", "labelAuthors")
+        .attr("x", 10)
+        .attr("y", 40)
+        .style("font-size", "12px");
+
+      label.append("text")
+        .attr("id", "labelGenre")
+        .attr("x", 10)
+        .attr("y", 60)
+        .style("font-size", "12px");
+
+      label.append("text")
+        .attr("id", "labelRating")
+        .attr("x", 10)
+        .attr("y", 80)
+        .style("font-size", "12px");
+
+      label.append("text")
+        .attr("id", "labelXVar")
+        .attr("x", 10)
+        .attr("y", 100)
+        .style("font-size", "12px");
+
+      return label;
+    }
 
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
@@ -171,9 +255,7 @@
         });
 
         // date format from excel: e.g. "13-Jun-17"
-        const parseDate = d3.timeParse("%d-%b-%y");
-        d['publication_date'] = parseDate(d['publication_date']);
-        const parseYear = d3.timeFormat("%Y");
+        d['publication_date'] = parseTime(d['publication_date'], 'date');
 
         // fill map with counts of books
         if (genre != "") {
@@ -181,7 +263,8 @@
         }
 
         // add valid points to the dataset for scatterplots
-        if (genre != "" && d['num_pages'] > 0 && parseYear(d['publication_date']) <= 2024) {
+        if (genre != "" && d['num_pages'] > 0 && d['num_pages'] < 1800
+          && parseTime(d['publication_date'], 'year') <= 2024 && d['price'] > 0) {
           top_genre_books.push(d);
         }
       });
@@ -192,7 +275,9 @@
       // ----- Books on Shelf -----
 
       // Genre color scale
-      const genreColors = d3.schemeTableau10;
+      // colors based on d3.schemeTableau10, but ordered differently
+      // pink, orange, blue, purple, green
+      const genreColors = ['#E1575A', '#F28E2C', '#4F79A7', '#AF7AA1', '#58A14E'];
       const genreScale = d3.scaleOrdinal(genres, genreColors);
 
       // subset of books to be added to the bookshelf
@@ -236,11 +321,11 @@
       const minRating = d3.min(booksForShelf.flat(), d => d.rating_score);
       const maxRating = d3.max(booksForShelf.flat(), d => d.rating_score);
       const heightScale = d3.scaleLinear().domain([minRating, maxRating])
-                                          .range([minHeight, maxHeight])
+        .range([minHeight, maxHeight])
       const minRatingAll = d3.min(data, d => d.rating_score);
       const maxRatingAll = d3.max(data, d => d.rating_score);
       const bookLightness = d3.scaleLinear().domain([minRatingAll, maxRatingAll])
-                                             .range([1.5, 0.1])
+        .range([1.5, 0.1])
       // add books to the shelf
 
       let shelves = svg.selectAll("shelf")
@@ -264,26 +349,6 @@
         .attr("stroke", "black")
         .attr("stroke-width", 0.3);
 
-      // interactivity for books
-
-      function textCutoff(text, maxLength) {
-        if (text.length > maxLength) {
-          return text.substring(0, 28).concat("...")
-        } else {
-          return text
-        }
-      }
-
-      // Adds labels for each shelf which genre the books are
-      function addText(genre, shelfposition = 110) {
-        svg.append("text")
-          .attr("x", 50)
-          .attr("y", shelfposition)
-          .text(genre)
-          .style("font-size", "14px")
-          .style("font-weight", "bold");
-      }
-
       let shelfposition = 110;
       genreRatingsArr.forEach(genre => {
         addText(genre[0], shelfposition);
@@ -291,49 +356,9 @@
       });
 
       // created tan label when mouse hovers over book
-      const label = svg.append("g")
-        .style("visibility", "hidden")
+      const label = createHoverLabel(svg.append("g")
+        .style("visibility", "hidden"));
 
-      label.append("rect")
-        .attr("width", 250)
-        .attr("height", 110)
-        .attr("rx", 10)
-        .attr("ry", 10)
-        .attr("fill", "#dfd0c0")
-        .attr("stroke", "black");
-
-      label.append("text")
-        .attr("id", "labelTitle")
-        .attr("x", 10)
-        .attr("y", 20)
-        .style("font-size", "14px")
-        .style("font-weight", "bold");
-
-      label.append("text")
-        .attr("id", "labelAuthors")
-        .attr("x", 10)
-        .attr("y", 40)
-        .style("font-size", "12px");
-
-      label.append("text")
-        .attr("id", "labelGenre")
-        .attr("x", 10)
-        .attr("y", 60)
-        .style("font-size", "12px");
-
-      label.append("text")
-        .attr("id", "labelRating")
-        .attr("x", 10)
-        .attr("y", 80)
-        .style("font-size", "12px");
-
-      label.append("text")
-        .attr("id", "labelDate")
-        .attr("x", 10)
-        .attr("y", 100)
-        .style("font-size", "12px");
-
-      const parseYear = d3.timeFormat("%Y");
       // mouseover
       rectangles.on("mouseover", function (event) {
         let book = d3.select(this).datum();
@@ -347,7 +372,7 @@
         label.select("#labelAuthors").text(`Author: ${book.authors}`);
         label.select("#labelGenre").text(`Genre: ${book.top_genre}`);
         label.select("#labelRating").text(`Rating: ${book.rating_score}`);
-        label.select("#labelDate").text(`Publication Year: ${parseYear(book.publication_date)}`);
+        label.select("#labelXVar").text(`Publication Year: ${parseTime(book.publication_date, 'year')}`);
         label.style("visibility", "visible");
       });
 
@@ -355,7 +380,7 @@
       rectangles.on("mousemove", function (event) {
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
 
-        let mouseXTrans
+        // let mouseXTrans
         if (mouseX > width / 2) {
           label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 90})`);
         } else {
@@ -392,12 +417,13 @@
             // console.log(genre);
             chartAreas.forEach(c => {
               c.selectAll("circle." + g)
-                .transition().duration(400)
-                .style("opacity", 0.8);
+                // .transition().duration(1000)
+                .style("opacity", 0.6)
+                .style("visibility", "visible");
 
               c.selectAll("circle:not(." + g + ")")
-                .transition().duration(400)
-                .style("opacity", 0.1);
+                // .transition().duration(1000)
+                .style("visibility", "hidden");
             });
           });
       })
@@ -407,8 +433,9 @@
           // console.log("Clear");
           chartAreas.forEach(c => {
             c.selectAll("circle")
-              .transition().duration(400)
-              .style("opacity", 0.4);
+              // .transition().duration(400)
+              .style("opacity", 0.4)
+              .style("visibility", "visible");
           });
         });
     }
@@ -466,7 +493,7 @@
         .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
         .call(bottomAxis);
 
-      // adding labels
+      // adding axis titles
       svg.append("text")
         .attr("class", "y label")
         .attr("text-anchor", "middle")
@@ -494,46 +521,29 @@
 
       chartArea.raise();
 
-      // show title/author of book when hovering over circle
-      const tooltipWidth = 100;
-      const tooltipHeight = 45;
+      // add label when hovering over circle
 
-      // var label = svg.append("text").attr("id", "label");
-
-      var box = svg.append("span").attr("class", "tooltip");
-
-      // let tooltip = svg.append("g")
-      //   .attr("class", "tooltip")
-      //   .attr("visibility", "hidden");
-
-      // tooltip.append("rect")
-      //   .attr("fill", "black")
-      //   .attr("opacity", 0.9)
-      //   .attr("x", -tooltipWidth / 2.0)
-      //   .attr("y", 0)
-      //   .attr("width", tooltipWidth)
-      //   .attr("height", tooltipHeight)
-      //   .attr("border-radius", 2)
-
-      // let title_txt = tooltip.append("text")
-      //   .attr("fill", "white")
-      //   .attr("text-anchor", "middle")
-      //   .attr("alignment-baseline", "hanging")
-      //   .attr("x", 0)
-      //   .attr("y", 5);
-      // let author_txt = tooltip.append("text")
-      //   .attr("fill", "white")
-      //   .attr("text-anchor", "middle")
-      //   .attr("alignment-baseline", "hanging")
-      //   .attr("x", 0)
-      //   .attr("y", 25);
+      // created tan label when mouse hovers over book
+      const label = createHoverLabel(svg.append("g")
+        .style("visibility", "hidden"));
 
       circles.on("mouseover", function (event) {
         let circle = d3.select(this);
         let book = circle.datum();
         let title = book['title'];
         let authors = book['authors'];
-        let isbn = book['isbn']; // used as id for each circle
+        let genre = book['top_genre'];
+        let xVarFormatted = formatLabel(x_var, 'label');
+        let xVarVal = book[x_var];
+        if (x_var == 'publication_date') {
+          xVarVal = parseTime(xVarVal, 'str');
+        } else if (x_var == 'price') {
+          xVarVal = "$" + xVarVal;
+        }
+        // let isbn = book['isbn']; // used as id for each circle
+
+        circle_x = circle.attr('cx');
+        circle_y = circle.attr('cy');
 
         circle.raise()
           .transition().duration(200)
@@ -543,24 +553,41 @@
           .style("opacity", 1)
           .style("fill", d => darken(genreScale(d['top_genre']), 10));
 
+        label.select("#labelTitle").text(`Title: ${textCutoff(book['title'], 30)}`);
+        label.select("#labelAuthors").text(`Author: ${book['authors']}`);
+        label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
+        label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
+        label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
+        label.style("visibility", "visible");
+
+        const [mouseX, mouseY] = d3.pointer(event, svg.node());
+
+        // let mouseXTrans
+
+        // top right of chart
+        if (mouseX > chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
+          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 5})`);
+        }
+        // top left of chart
+        else if (mouseX < chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
+          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 5})`);
+        }
+        // bottom right of chart
+        else if (mouseX > chartWidth / 2 + margins.left && mouseY > chartHeight / 2 + margins.bottom) {
+          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 110})`);
+        }
+        // bottom left of chart
+        else {
+          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 110})`);
+        }
+
         // for debugging purposes
-        console.log(circle.node());
-        console.log("cx:", circle.attr('cx'));
-        console.log("cy:", circle.attr('cy'));
+        // console.log(circle.node());
+        // console.log("cx:", circle.attr('cx'));
+        // console.log("cy:", circle.attr('cy'));
 
-        // label.text(title + " by " + authors)
-        //   .attr("x", circle.attr('cx'))
-        //   .attr("y", circle.attr('cy'));
-
-        box.attr("visibility", "visible")
-          .attr("text", title + " by " + authors)
-          .attr("transform", `translate(${circle.attr('cx')},${circle.attr('cy')})`);
-
-        // tooltip.style("visibility", "visible");
-        // title_txt.text(title);
-        // author_txt.text(authors);
-        // tooltip.attr("transform", `translate(${circle.attr('cx')},${circle.attr('cy')})`);
       });
+
 
       circles.on("mouseout", function () {
         let circle = d3.select(this);
@@ -571,31 +598,10 @@
           .style("opacity", 0.4)
           .style("fill", d => genreScale(d['top_genre']));
 
-        // label.text("");
+        label.style("visibility", "hidden");
       });
 
       return chartArea;
-    }
-
-    // helper function: darken a color
-    // inspired by lighten(color) from Prof. Rzeszotarski
-    function darken(color, amount) {
-      let hclColor = d3.hcl(color);
-      let luma = Math.min(130, hclColor.l - amount);
-      return d3.rgb(d3.hcl(hclColor.h, hclColor.c, luma));
-    }
-
-    // helper function: returns label without _ and capitalized
-    function formatLabel(label, type) {
-      if (label == "num_pages") {
-        label = "number_of_pages"
-      }
-      formatted = label.toLowerCase()
-        .split('_')
-        .map(s => s.charAt(0).toUpperCase() + s.substring(1))
-        .join(' ');
-
-      return formatted
     }
 
     requestData();
