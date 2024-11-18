@@ -161,7 +161,6 @@
   </div>
 
   <script>
-
     const svg = d3.select("svg");
     const width = svg.attr("width");
     const height = svg.attr("height");
@@ -191,6 +190,8 @@
         .style("font-size", "14px")
         .style("font-weight", "bold");
     }
+
+
 
     // helper function: one compact function that parses all dates/times/years
     // possible toFormats: 'year' i.e. 2024, 'date' i.e. Tue Jun 13 2017 00:00:00 GMT-0400 (Eastern Daylight Time) 
@@ -459,6 +460,14 @@
         addText(genre[0], shelfposition);
         shelfposition += 100;
       });
+
+      // adding Title to visualization
+      svg.append("text")
+        .attr("x", 10)
+        .attr("y", 40)
+        .text("Ratings vs. Genre:")
+        .style("font-size", "21px")
+        .style("font-weight", "bold");
 
       // created tan label when mouse hovers over book
       const label = createHoverLabel(svg.append("g")
