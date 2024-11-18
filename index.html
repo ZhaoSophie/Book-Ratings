@@ -97,6 +97,9 @@
   <div>
     <svg id="price" width="600" height="600"></svg>
   </div>
+  <div>
+    <svg id="number_of_awards" width="600" height="600"></svg>
+  </div>
 
   <script>
 
@@ -114,7 +117,7 @@
     // helper function: interactivity for books
     function textCutoff(text, maxLength) {
       if (text.length > maxLength) {
-        return text.substring(0, 28).concat("...")
+        return text.substring(0, maxLength - 2).concat("...")
       } else {
         return text
       }
@@ -212,9 +215,13 @@
       return label;
     }
 
+    function filterData(data) { }
+
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
+      let data_awards = await d3.csv('data/books_awards_chars.csv');
       console.log("data", data);
+      console.log("data_awards", data_awards);
 
       let num_genres = new Map() // map of genres to # of books
       let genres_books = new Map()
@@ -222,6 +229,7 @@
 
       // The books where one of the genres is among the top 5 genres 
       let top_genre_books = []
+      let awards_books = []
 
       genres.forEach((g) => {
         num_genres.set(g, 0);
@@ -269,8 +277,46 @@
         }
       });
 
+      data_awards.forEach((d, i) => {
+        let genres_list = d['genres'].slice(2, -2).split("', '") // get list of genres for book
+        let len = genres_list.length;
+
+        // find first genre that's in top 5 genres
+        var i = 0;
+        let genre = genres_list[i];
+        while (!num_genres.has(genre)) {
+          i += 1;
+          if (i == len) {
+            genre = "";
+            break;
+          } else {
+            genre = genres_list[i];
+          }
+        }
+
+        // at this point, 'genre' is the genre (within top 5) of the book
+        d['top_genre'] = genre; // adding the top genre as a new field
+
+        // Reformatting some data
+        convert_to_num = ['rating'];
+        convert_to_num.forEach((category, i) => {
+          d[category] = Number(d[category]);
+        });
+
+        d['authors'] = d['author'];
+
+        // collect # of awards per book
+        d['number_of_awards'] = d['awards'].slice(1, -1).split(',').length;
+
+        // add valid points to the dataset for scatterplots
+        if (genre != "" && d['pages'] > 0 && d['price'] > 0 && d['number_of_awards'] > 0) {
+          awards_books.push(d);
+        }
+      });
+
       console.log("num_genres", num_genres);
       console.log("top_genre_books", top_genre_books);
+      console.log("awards_books", awards_books);
 
       // ----- Books on Shelf -----
 
@@ -405,8 +451,10 @@
       num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
       publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
       price_chartArea = createScatterplot(top_genre_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
+      awards_chartArea = createScatterplot(awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
 
-      const chartAreas = [num_pages_chartArea, publication_date_chartArea, price_chartArea];
+
+      const chartAreas = [num_pages_chartArea, publication_date_chartArea, price_chartArea, awards_chartArea];
 
       // // legend buttons
       genres.forEach(genre => {
@@ -440,7 +488,7 @@
         });
     }
 
-    function createScatterplot(top_genre_books, x_var, x_scale_func, y_var, genreScale) {
+    function createScatterplot(books, x_var, x_scale_func, y_var, genreScale) {
       // General dimensions of every scatterplot are the same
       const svg = d3.select('#' + x_var);
       const width = svg.attr('width');
@@ -460,9 +508,9 @@
         .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"));
 
       // create scales
-      const xExtent = d3.extent(top_genre_books, d => d[x_var]);
+      const xExtent = d3.extent(books, d => d[x_var]);
       const xScale = x_scale_func.domain(xExtent).range([0, chartWidth]);
-      const yExtent = d3.extent(top_genre_books, d => d[y_var]);
+      const yExtent = d3.extent(books, d => d[y_var]);
       const yScale = d3.scaleLinear().domain(yExtent).range([chartHeight, 0]);
 
       let leftGridlines = d3.axisLeft(yScale)
@@ -509,7 +557,7 @@
         .attr("y", height - 20)
         .text(formatLabel(x_var, "axis"));
 
-      let circles = chartArea.selectAll("circle").data(top_genre_books)
+      let circles = chartArea.selectAll("circle").data(books)
         .join("circle")
         .attr("id", d => d['title'].replaceAll(' ', '_'))
         .attr("class", d => d['top_genre'].replace(' ', '_'))
@@ -554,7 +602,7 @@
           .style("fill", d => darken(genreScale(d['top_genre']), 10));
 
         label.select("#labelTitle").text(`Title: ${textCutoff(book['title'], 30)}`);
-        label.select("#labelAuthors").text(`Author: ${book['authors']}`);
+        label.select("#labelAuthors").text(`Author: ${textCutoff(book['authors'], 35)}`);
         label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
         label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
         label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
