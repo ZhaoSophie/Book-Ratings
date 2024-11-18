@@ -77,7 +77,66 @@
 
       </g>
     </svg>
+    <svg id="space" height="60" width="100"></svg>
+    <svg id="legend" height="600" width="300"></svg>
+
+
   </div>
+  <p>Our bookshelf visualization shows how the ratings of books compare between genres. The average rating of our
+    dataset was calaculated for each genre and sorted so that the
+    top shelf has the highest rated genre and the bottom shelf has the lowest rated genre. The higher rated books have
+    a darker hue and the lower rated books have a lighter hue. The visualization shows that historical fiction seems to
+    be the highest rated books, then nonfiction, romance, science fiction, and mystery. However, it's important to note
+    that this coorealtion does not imply a causation.</p>
+
+
+  <script>
+    const legendSvg = d3.select("#legend");
+    const legendWidth = +legendSvg.attr("width");
+    const legendHeight = +legendSvg.attr("height");
+
+    const lowRatedColor = "white";
+    const highRatedColor = "grey";
+
+    const bookWidthLegend = 10;
+    const bookHeightLegendMin = 20;
+    const bookHeightLegendMax = 70;
+    const padding = 20;
+
+    // Low-rated book label 
+    legendSvg.append("text")
+      .attr("x", (legendWidth / 2) - 100)
+      .attr("y", padding)
+      .style("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("Low-rated book");
+
+    // Low-rated book rectangle
+    legendSvg.append("rect")
+      .attr("x", (legendWidth / 2) - 100 - bookWidthLegend / 2)
+      .attr("y", padding + 60)
+      .attr("width", bookWidthLegend)
+      .attr("height", bookHeightLegendMin)
+      .style("fill", lowRatedColor)
+      .style("stroke", "black");
+
+    // High-rated book label 
+    legendSvg.append("text")
+      .attr("x", (legendWidth / 2) + 100)
+      .attr("y", padding)
+      .style("text-anchor", "middle")
+      .style("font-size", "12px")
+      .text("High-rated book");
+
+    // High-rated book rectangle
+    legendSvg.append("rect")
+      .attr("x", (legendWidth / 2) + 100 - bookWidthLegend / 2)
+      .attr("y", padding + 10)
+      .attr("width", bookWidthLegend)
+      .attr("height", bookHeightLegendMax)
+      .style("fill", highRatedColor)
+      .style("stroke", "black");
+  </script>
 
   <h2>The scatterplots for the data: </h2>
   <div>
