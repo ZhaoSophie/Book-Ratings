@@ -218,15 +218,68 @@
     }
 
     // helper function: adds labels for each shelf which genre the books are
-    function addText(genre, shelfposition = 130) {
+    function addText(genre, shelfposition) {
+      let lengths = new Map([["Historical Fiction", 100],
+                             ["Romance", 60],
+                             ["Nonfiction", 70],
+                             ["Science Fiction", 90],
+                             ["Mystery", 60]])
+
+      svg.append("rect")
+        .attr("width", lengths.get(genre))
+        .attr("height", 15)
+        .attr("x", 208)
+        .attr("y", shelfposition - 11)
+        .style("fill", "#f0f0f0")
+        .style("stroke", "#222222")
+        .style("stroke-width", 1.5)
+      
       svg.append("text")
         .attr("x", 210)
         .attr("y", shelfposition)
         .text(genre)
-        .style("font-size", "14px")
+        .style("font-size", "12px")
         .style("font-weight", "bold")
-        .style("fill", "white");
+        .style("fill", "black");
+
     }
+
+    function addYear(firstYear, lastYear, yearposition) {
+      svg.append("rect")
+        .attr("x", 186)
+        .attr("y", yearposition)
+        .attr("width", 13)
+        .attr("height", 50)
+        .style("fill", "#e4d5b7")
+        .style("stroke", "black");
+
+      svg.append("rect")
+        .attr("x", 710)
+        .attr("y", yearposition)
+        .attr("width", 13)
+        .attr("height", 50)
+        .style("fill", "#e4d5b7")
+        .style("stroke", "black");
+
+      for (let i = 0; i < 4; i++) {
+        svg.append("text")
+        .attr("x", 190)
+        .attr("y", yearposition + 13 + 10*i)
+        .text(firstYear[i])
+        .style("font-size", "10px")
+        .style("font-weight", "bold")
+        .style("fill", "black");
+
+        svg.append("text")
+        .attr("x", 714)
+        .attr("y", yearposition + 13 + 10*i)
+        .text(lastYear[i])
+        .style("font-size", "10px")
+        .style("font-weight", "bold")
+        .style("fill", "black");
+      }
+  }
+
 
     // helper function: one compact function that parses all dates/times/years
     // possible toFormats: 'year' i.e. 2024, 'date' i.e. Tue Jun 13 2017 00:00:00 GMT-0400 (Eastern Daylight Time) 
@@ -468,7 +521,7 @@
       // Genre color scale
       // colors based on d3.schemeTableau10, but ordered differently
       // pink, blue, purple, green, orange
-      const genreColors = ['#4F79A7', '#E1575A', '#58A14E', '#AF7AA1', '#F28E2C'];
+      const genreColors = ['#4F79A7', '#E1575A', '#AF7AA1', '#58A14E', '#F28E2C'];
       const genreScale = d3.scaleOrdinal(genres, genreColors);
 
       // subset of books to be added to the bookshelf
@@ -556,11 +609,26 @@
             : "hidden";
         });
 
-      let shelfposition = 210;
+      let shelfposition = 205;
       genreRatingsArr.forEach(genre => {
         addText(genre[0], shelfposition);
         shelfposition += 100;
       });
+
+      let yearposition = 130;
+      let firstYears = []
+      let lastYears = []
+
+      shelfMap.forEach(genre => {
+        firstYears.push(genre[0]['publication_date'].getFullYear().toString())
+        lastYears.push(genre[49]['publication_date'].getFullYear().toString())
+      })
+
+
+      for (let i = 0; i < 5; i++) {
+        addYear(firstYears[i], lastYears[i], yearposition);
+        yearposition += 100;
+      }
 
       // created tan label when mouse hovers over book
       const label = createHoverLabel(
