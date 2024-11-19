@@ -406,7 +406,8 @@
         d['rating_score'] = d['rating'];
 
         // collect # of awards per book
-        d['number_of_awards'] = d['awards'].slice(1, -1).split(',').length;
+        let awards_split = d['awards'].slice(2, -2).split("', '");
+        d['number_of_awards'] = awards_split[0] == "" ? 0 : awards_split.length;
 
         // add valid points to the dataset for scatterplots
         if (genre != "" && d['pages'] > 0 && d['price'] > 0 && d['number_of_awards'] > 0) {
@@ -414,7 +415,6 @@
         }
       });
 
-      console.log("num_genres", num_genres);
       console.log("top_genre_books", top_genre_books);
       console.log("awards_books", awards_books);
 
@@ -425,6 +425,15 @@
         if (!seenBooks.has(book.title)) {
           uniqueBooks.push(book);
           seenBooks.add(book.title);
+        }
+      })
+
+      // Add awarded column
+      data.forEach( d => {
+        if (awards_books.some(book2 => book2.title === d.title && book2.number_of_awards > 0)) {
+          d['awarded'] = true
+        } else {
+          d['awarded'] = false
         }
       })
 
@@ -516,7 +525,7 @@
         .attr("stroke-width", 0.3)
         .attr("fill", "gold")
         .style("visibility", d => {
-          return awards_books.some(book2 => book2.title === d.title && book2.number_of_awards > 0)
+          return d.awarded
             ? "visible"
             : "hidden";
         });
@@ -555,7 +564,7 @@
         label.select("#labelGenre").text(`Genre: ${book.top_genre}`);
         label.select("#labelRating").text(`Rating: ${book.rating_score}`);
         label.select("#labelXVar").text(`Publication Year: ${parseTime(book.publication_date, 'year')}`);
-        if (awards_books.some(book2 => book2.title === book.title && book2.number_of_awards > 0)) {
+        if (book.awarded) {
           label.select("#labelAward").style('visibility', 'visible');
         } else {
           label.select("#labelAward").style('visibility', 'hidden');
@@ -771,8 +780,6 @@
       chartArea.raise();
 
       // add label when hovering over circle
-
-      // created tan label when mouse hovers over book
       const label = createHoverLabel(
         svg.append("g").style("visibility", "hidden"),
         books,
@@ -809,6 +816,11 @@
         label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
         label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
         label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
+        if (book['awarded']) {
+          label.select("#labelAward").style('visibility', 'visible');
+        } else {
+          label.select("#labelAward").style('visibility', 'hidden');
+        }
         label.style("visibility", "visible");
 
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
@@ -850,6 +862,7 @@
           .style("fill", d => genreScale(d['top_genre']));
 
         label.style("visibility", "hidden");
+        label.select("#labelAward").style('visibility', 'hidden');
       });
 
       return chartArea;
