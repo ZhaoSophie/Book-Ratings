@@ -178,6 +178,8 @@
     const minHeight = bookWidth * 2;
     const maxHeight = shelfHeight - 25;
 
+    let defs = svg.append("defs");
+
     // helper function: interactivity for books
     function textCutoff(text, maxLength) {
       if (text.length > maxLength) {
@@ -288,13 +290,29 @@
         .attr("cx", labelWidth - r - 15) // Position near bottom-right corner
         .attr("cy", labelHeight - r - 15)
         .attr("r", r)
-        .attr("fill", "gold")
-        .attr("stroke", "black");
+        .style('fill', makeAwardSticker(r, labelWidth - r - 15, labelHeight - r - 15))
 
       return label;
     }
 
-    function filterData(data) { }
+    // Clips a star sticker onto the current circle
+    function makeAwardSticker(r, x, y) {
+      pattern = defs.append("pattern")
+        .attr("id", "star")
+        .attr("width", r * 2)
+        .attr("height", r * 2)
+        .attr("x", x + r)
+        .attr("y", y + r)
+        .attr("patternUnits", "userSpaceOnUse");
+      pattern.append("svg:image")
+        .attr("xlink:href", 'star.png')
+        .attr("width", r * 2)
+        .attr("height", r * 2)
+        .attr("x", 0)
+        .attr("y", 0);
+
+      return "url(#star)"
+    }
 
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
@@ -492,6 +510,8 @@
         .attr("cx", (d, i) => 60 + i * (bookWidth + spaceBetweenBooks) + bookWidth / 2)
         .attr("cy", d => shelfHeight - 35)
         .attr("r", 3)
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.3)
         .attr("fill", "gold")
         .style("visibility", d => {
           return awards_books.some(book2 => book2.title === d.title && book2.number_of_awards > 0)
@@ -683,21 +703,21 @@
       let viewport = chartArea.append("g")
 
       let circles = viewport.selectAll("circle")
-                            .data(books)
-                            .join("circle")
-                            .attr("id", d => d['title'].replaceAll(' ', '_'))
-                            .attr("class", d => d['top_genre'].replace(' ', '_'))
-                            .attr("cx", d => xScale(d[x_var]))
-                            .attr("cy", d => yScale(d[y_var]))
-                            .attr("r", 5)
-                            .style("fill", d => genreScale(d['top_genre']))
-                            .style("opacity", 0.4);
+        .data(books)
+        .join("circle")
+        .attr("id", d => d['title'].replaceAll(' ', '_'))
+        .attr("class", d => d['top_genre'].replace(' ', '_'))
+        .attr("cx", d => xScale(d[x_var]))
+        .attr("cy", d => yScale(d[y_var]))
+        .attr("r", 5)
+        .style("fill", d => genreScale(d['top_genre']))
+        .style("opacity", 0.4);
 
       chartArea.attr("clip-path", "url(#chartClip)");
-    
+
       var plotZoom = d3.zoom()
-                       .scaleExtent([0.5, 20])
-                       .on("zoom", plotZoomed);
+        .scaleExtent([0.5, 20])
+        .on("zoom", plotZoomed);
 
       svg.call(plotZoom)
 
@@ -730,7 +750,7 @@
         zoomFactor = event.transform.k
 
         viewport.selectAll("circle")
-                .attr("r", 5 / zoomFactor)
+          .attr("r", 5 / zoomFactor)
       }
 
 
