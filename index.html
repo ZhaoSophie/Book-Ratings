@@ -142,11 +142,11 @@
 
   <h2>The scatterplots for the data: </h2>
   <div>
-    <button id="Romance">Romance</button>
-    <button id="Mystery">Mystery</button>
     <button id="Historical_Fiction">Historical Fiction</button>
-    <button id="Science_Fiction">Science Fiction</button>
+    <button id="Romance">Romance</button>
     <button id="Nonfiction">Nonfiction</button>
+    <button id="Science_Fiction">Science Fiction</button>
+    <button id="Mystery">Mystery</button>
     <button id="All_Genres">All Genres</button>
   </div>
   <div>
@@ -413,7 +413,7 @@
       // Genre color scale
       // colors based on d3.schemeTableau10, but ordered differently
       // pink, orange, blue, purple, green
-      const genreColors = ['#E1575A', '#F28E2C', '#4F79A7', '#AF7AA1', '#58A14E'];
+      const genreColors = ['#E1575A', '#F28E2C', '#AF7AA1', '#58A14E', '#4F79A7'];
       const genreScale = d3.scaleOrdinal(genres, genreColors);
 
       // subset of books to be added to the bookshelf
@@ -608,155 +608,6 @@
               .style("visibility", "visible");
           });
         });
-
-      // AUTHORS
-      const authors_layer = d3.select("#authors").append("g");
-      const authors_width = d3.select("#authors").attr("width");
-      const authors_height = d3.select("#authors").attr("height");
-
-      let authors_data = await d3.csv('data/authors.csv');
-      let authors_1980 = []
-
-      const timeParser = d3.timeParse('%Y-%m-%d')
-      authors_data.forEach(d => {
-        let birthyear = timeParser(d['born']).getFullYear()
-        d['born'] = birthyear
-
-        if (birthyear == 1980) {
-          authors_1980.push(d)
-        }
-      })
-
-      // Create links
-      let authors_genres = new Map()
-      authors_1980.forEach(d => {
-        let genre = d['genre'].split(",")[0]
-        d['g'] = genre
-        let name = d['name']
-
-        if (authors_genres.has(genre)) {
-          authors_genres.get(genre).push(name)
-        } else {
-          authors_genres.set(genre, [name])
-        }
-      })
-
-      console.log("authors_genres", authors_genres)
-
-      let authors_links = []
-
-      authors_genres.forEach((authors, genre) => {
-        for (let i = 0; i < authors.length - 1; i++) {
-          for (let j = i + 1; j < authors.length; j++) {
-            authors_links.push({ "source": authors[i], "target": authors[i + 1] })
-            authors_links.push({ "source": authors[i], "target": authors[j] })
-          }
-        }
-      })
-
-      // console.log(authors_1980)
-
-      // for (let i = 0; i < authors_1980.length - 1; i++) {
-      //   for (let j = i+1; j < authors_1980.length; j++) {
-      //     authors_links.push({"source": authors_1980[i], "target": authors_1980[j]})
-      //   }
-      // }
-
-      let authors = {}
-      authors['nodes'] = authors_1980
-      authors['links'] = authors_links
-
-      console.log("authors", authors);
-
-      var nodes = authors.nodes;
-      var links = authors.links;
-
-      // const valueExtent = d3.extent(links, d => d.value)
-      // const valueScale = d3.scaleLinear()
-      //                       .domain(valueExtent)
-      //                       .range([1, 5])
-
-      // const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
-
-      var simulation = d3.forceSimulation()
-        .nodes(nodes)
-        .force("links", d3.forceLink()
-          .links(links)
-          .id(d => d.name))
-        .force("repulse", d3.forceManyBody().strength(-5))
-        .force("center", d3.forceCenter(width / 2.0, height / 2.0))
-        .on("tick", render)
-
-      function render() {
-        let edges = authors_layer.selectAll("line.link")
-          .data(links)
-          .join(
-            enter => enter.append("line")
-              .attr("class", "link")
-              .attr("stroke", "#e0e0e0")
-              .attr("stroke-width", 1)
-          )
-          .attr("x1", d => d.source.x)
-          .attr("x2", d => d.target.x)
-          .attr("y1", d => d.source.y)
-          .attr("y2", d => d.target.y)
-
-        let circles = authors_layer.selectAll("circle.node")
-          .data(nodes)
-          .join(
-            enter => enter.append("circle")
-              .attr("class", "node")
-              .attr("cx", 0)
-              .attr("cy", 0)
-              .attr("r", 5)
-              .attr("fill", d => {
-                if (d['gender'] == "male") {
-                  return "#99d6ff"
-                } else {
-                  return "#ffceea"
-                }
-              })
-              .attr("stroke", "black")
-              .attr("stroke-width", 0.5)
-              .call(d3.drag().on("start", dragstart)
-                .on("drag", dragging)
-                .on("end", dragend))
-          )
-          .attr("transform", d => `translate(${d.x}, ${d.y})`)
-      }
-
-      render();
-
-      var genre_label = authors_layer.append("text").attr("id", "label");
-
-      function dragstart(event, d) {
-        if (!event.active) {
-          genre_label.text(d.g)
-          simulation.alphaTarget(0.08).restart()
-        }
-
-        d.fx = event.x
-        d.fy = event.y
-
-        genre_label.attr("x", event.x + 10).attr("y", event.y);
-
-      }
-
-      function dragging(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-        genre_label.attr("x", event.x + 10).attr("y", event.y);
-      }
-
-      function dragend(event, d) {
-        if (!event.active) {
-          simulation.alphaTarget(0);
-          genre_label.text("");
-        }
-
-        d.fx = null;
-        d.fy = null;
-      }
 
     }
 
