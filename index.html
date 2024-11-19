@@ -160,6 +160,10 @@
   <div>
     <svg id="number_of_awards" width="600" height="600"></svg>
   </div>
+  <div>
+    <svg id="authors" width="600" height="600"></svg>
+    <text id="label" x="50" y="5"  text-anchor="start" alignment-baseline="hanging"></text>
+  </div>
 
   <script>
     const svg = d3.select("svg");
@@ -281,6 +285,7 @@
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
       let data_awards = await d3.csv('data/books_awards_chars.csv');
+
       console.log("data", data);
       console.log("data_awards", data_awards);
 
@@ -555,6 +560,109 @@
               .style("visibility", "visible");
           });
         });
+
+      // AUTHORS
+      const authors_layer = d3.select("#authors").append("g");
+      const authors_width = d3.select("#authors").attr("width");
+      const authors_height = d3.select("#authors").attr("height");
+
+      let authors_data = await d3.csv('data/authors.csv');
+      let authors_1980 = []
+
+      const timeParser = d3.timeParse('%Y-%m-%d')
+      authors_data.forEach( d => {
+        let birthyear = timeParser(d['born']).getFullYear()
+        d['born'] = birthyear
+
+        if (birthyear == 1980) {
+          authors_1980.push(d)
+        }
+      })
+
+      // Create links
+      let authors_genres = new Map()
+      authors_1980.forEach( d => {
+        let genre = d['genre'].split(",")[0]
+        let name = d['name']
+        
+        if (authors_genres.has(genre)) {
+          authors_genres.get(genre).push(name)
+        } else {
+          authors_genres.set(genre, [name])
+        }
+      })
+
+      console.log("authors_genres", authors_genres)
+
+      let links = []
+
+      authors_genres.forEach( (authors, genre) => {
+        for (let i = 0; i < authors.length - 1; i++) {
+          for (let j = i+1; j < authors.length; j++) {
+            // console.log("s", authors[i])
+            // console.log("t", authors[j])
+            links.push({"source": authors[i], "target": authors[j]})
+          }
+        }
+      })
+
+      let authors = {}
+      authors['nodes'] = authors_1980
+      authors['links'] = links
+
+      console.log("authors", authors);
+
+      // var nodes = miserables.nodes;
+      // var links = miserables.links;
+
+      // const valueExtent = d3.extent(links, d => d.value)
+      // const valueScale = d3.scaleLinear()
+      //                       .domain(valueExtent)
+      //                       .range([1, 5])
+
+      // const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+
+      // var simulation = d3.forceSimulation()
+      //                     .nodes(nodes)
+      //                     .force("links", d3.forceLink()
+      //                                       .links(links)
+      //                                       .id(d => d.character))
+      //                     .force("repulse", d3.forceManyBody().strength(-20))
+      //                     .force("center", d3.forceCenter(width/2.0, height/2.0))
+      //                     .on("tick", render)
+
+      // function render() {
+      //     let edges = layer.selectAll("line.link")
+      //                     .data(links)
+      //                     .join(
+      //                         enter => enter.append("line")
+      //                                         .attr("class", "link")
+      //                                         .attr("stroke", "#333")
+      //                                         .attr("stroke-width", d => valueScale(d.value))
+      //                     )
+      //                     .attr("x1", d => d.source.x)
+      //                     .attr("x2", d => d.target.x)
+      //                     .attr("y1", d => d.source.y)
+      //                     .attr("y2", d => d.target.y)
+
+      //     let circles = layer.selectAll("circle.node")
+      //                         .data(nodes)
+      //                         .join(
+      //                         enter => enter.append("circle")
+      //                                         .attr("class", "node")
+      //                                         .attr("cx", 0)
+      //                                         .attr("cy", 0)
+      //                                         .attr("r", 5)
+      //                                         .attr("fill", d => colorScale(d.group))
+      //                                         .attr("stroke", "black")
+      //                                         .attr("stroke-width", 1)
+      //                                         .call( d3.drag().on("start",dragstart)
+      //                                                         .on("drag",dragging)
+      //                                                         .on("end",dragend) )
+      //                         )
+      //                         .attr("transform", d => `translate(${d.x}, ${d.y})`)
+      // }
+
     }
 
     function createScatterplot(books, x_var, x_scale_func, y_var, genreScale) {
@@ -722,6 +830,8 @@
     }
 
     requestData();
+
+    
   </script>
 </body>
 
