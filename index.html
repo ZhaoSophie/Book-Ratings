@@ -872,11 +872,23 @@
         label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
         label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
         label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
-        if (book['awarded']) {
-          label.select("#labelAward").style('visibility', 'visible');
+        let awarded = false
+        if (x_var == 'number_of_awards') {
+          if (book['num_of_awards'] != 0) {
+            awarded = true
+          }
         } else {
-          label.select("#labelAward").style('visibility', 'hidden');
+          if (book['awarded']) {
+            awarded = true
+          }
         }
+
+        if (awarded) {
+            label.select("#labelAward").style('visibility', 'visible');
+        } else {
+            label.select("#labelAward").style('visibility', 'hidden');
+        }
+    
         label.style("visibility", "visible");
 
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
