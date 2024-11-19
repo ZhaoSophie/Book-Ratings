@@ -680,15 +680,60 @@
         .attr("y", height - 20)
         .text(formatLabel(x_var, "axis"));
 
-      let circles = chartArea.selectAll("circle").data(books)
-        .join("circle")
-        .attr("id", d => d['title'].replaceAll(' ', '_'))
-        .attr("class", d => d['top_genre'].replace(' ', '_'))
-        .attr("cx", d => xScale(d[x_var]))
-        .attr("cy", d => yScale(d[y_var]))
-        .attr("r", 5)
-        .style("fill", d => genreScale(d['top_genre']))
-        .style("opacity", 0.4);
+      // Zoom
+      let viewport = chartArea.append("g")
+
+      let circles = viewport.selectAll("circle")
+                            .data(books)
+                            .join("circle")
+                            .attr("id", d => d['title'].replaceAll(' ', '_'))
+                            .attr("class", d => d['top_genre'].replace(' ', '_'))
+                            .attr("cx", d => xScale(d[x_var]))
+                            .attr("cy", d => yScale(d[y_var]))
+                            .attr("r", 5)
+                            .style("fill", d => genreScale(d['top_genre']))
+                            .style("opacity", 0.4);
+
+      chartArea.attr("clip-path", "url(#chartClip)");
+    
+      var plotZoom = d3.zoom()
+                       .scaleExtent([0.5, 20])
+                       .on("zoom", plotZoomed);
+
+      svg.call(plotZoom)
+
+      svg.append("defs")
+        .lower()
+        .append("clipPath")
+        .attr("id", "chartClip")
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", chartWidth)
+        .attr("height", chartHeight);
+
+      let zoomFactor = 1
+
+      function plotZoomed(event) {
+        viewport.attr("transform", event.transform);
+
+        leftAxis.scale(event.transform.rescaleX(yScale));
+        bottomAxis.scale(event.transform.rescaleX(xScale));
+
+        leftGridlines.scale(event.transform.rescaleY(yScale));
+        bottomGridlines.scale(event.transform.rescaleX(xScale));
+
+        svg.select("g.y.axis").call(leftAxis)
+        svg.select("g.x.axis").call(bottomAxis)
+        svg.select("g.y.gridlines").call(leftGridlines)
+        svg.select("g.x.gridlines").call(bottomGridlines)
+
+        zoomFactor = event.transform.k
+
+        viewport.selectAll("circle")
+                .attr("r", 5 / zoomFactor)
+      }
+
 
       chartArea.raise();
 
@@ -720,8 +765,8 @@
 
         circle.raise()
           .transition().duration(200)
-          .attr("r", 8)
-          .attr("stroke-width", 1)
+          .attr("r", 8 / zoomFactor)
+          .attr("stroke-width", 3 / zoomFactor)
           .attr("stroke", d => darken(genreScale(d['top_genre']), 30))
           .style("opacity", 1)
           .style("fill", d => darken(genreScale(d['top_genre']), 10));
@@ -765,8 +810,8 @@
       circles.on("mouseout", function () {
         let circle = d3.select(this);
         circle.transition().duration(200)
-          .attr("r", 5)
-          .attr("stroke-width", 1)
+          .attr("r", 5 / zoomFactor)
+          .attr("stroke-width", 3 / zoomFactor)
           .attr("stroke", "none")
           .style("opacity", 0.4)
           .style("fill", d => genreScale(d['top_genre']));
