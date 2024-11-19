@@ -384,6 +384,16 @@
       console.log("top_genre_books", top_genre_books);
       console.log("awards_books", awards_books);
 
+      const uniqueBooks = [];
+      const seenBooks = new Set();
+
+      top_genre_books.forEach(book => {
+        if (!seenBooks.has(book.title)) {
+          uniqueBooks.push(book);
+          seenBooks.add(book.title);
+        }
+      })
+
       // ----- Books on Shelf -----
 
       // Genre color scale
@@ -400,7 +410,7 @@
       Note: dataset is sorted by highest number of reviews first
       */
       genres.forEach(genre => {
-        let booksInGenre = top_genre_books.filter(d => (d.top_genre === genre))
+        let booksInGenre = uniqueBooks.filter(d => (d.top_genre === genre))
           .slice(0, booksPerShelf)
         booksInGenre.sort(function (a, b) {
           return a["publication_date"] - b["publication_date"]
@@ -502,9 +512,9 @@
 
         // let mouseXTrans
         if (mouseX > width / 2) {
-          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 90})`);
+          label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 90})`);
         } else {
-          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 90})`);
+          label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 90})`);
         }
 
       });
@@ -522,9 +532,9 @@
       });
 
       // ----- SCATTERPLOTS -----
-      num_pages_chartArea = createScatterplot(top_genre_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
-      publication_date_chartArea = createScatterplot(top_genre_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
-      price_chartArea = createScatterplot(top_genre_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
+      num_pages_chartArea = createScatterplot(uniqueBooks, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
+      publication_date_chartArea = createScatterplot(uniqueBooks, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
+      price_chartArea = createScatterplot(uniqueBooks, 'price', d3.scaleLinear(), 'rating_score', genreScale);
       awards_chartArea = createScatterplot(awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
 
 
@@ -838,19 +848,19 @@
 
         // top right of chart
         if (mouseX > chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
-          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 5})`);
+          label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 5})`);
         }
         // top left of chart
         else if (mouseX < chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
-          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 5})`);
+          label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 5})`);
         }
         // bottom right of chart
         else if (mouseX > chartWidth / 2 + margins.left && mouseY > chartHeight / 2 + margins.bottom) {
-          label.attr("transform", `translate(${mouseX - 265}, ${mouseY - 110})`);
+          label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 110})`);
         }
         // bottom left of chart
         else {
-          label.attr("transform", `translate(${mouseX + 15}, ${mouseY - 110})`);
+          label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 110})`);
         }
 
         // for debugging purposes
