@@ -60,7 +60,7 @@
 <body>
   <h1 class="page-title">What factors impact the rating of a book?</h1>
   <div>
-    <svg id="shelf" height="600" width="600" style="border: 1px solid black;">
+    <svg id="shelf" height="605" width="600" style="border: 1px solid black;">
       <g stroke="#6e2c00" fill="#6e2c00">
 
         <!-- Shelf pillars -->
@@ -94,7 +94,7 @@
     const legendHeight = +legendSvg.attr("height");
 
     const lowRatedColor = "white";
-    const highRatedColor = "grey";
+    const highRatedColor = "#3b3b3b";
 
     const bookWidthLegend = 10;
     const bookHeightLegendMin = 20;
@@ -534,7 +534,6 @@
         label.select("#labelRating").text(`Rating: ${book.rating_score}`);
         label.select("#labelXVar").text(`Publication Year: ${parseTime(book.publication_date, 'year')}`);
         if (awards_books.some(book2 => book2.title === book.title && book2.number_of_awards > 0)) {
-          console.log("book2.title", book.title)
           label.select("#labelAward").style('visibility', 'visible');
         } else {
           label.select("#labelAward").style('visibility', 'hidden');
