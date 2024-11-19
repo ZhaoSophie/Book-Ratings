@@ -5,33 +5,29 @@
   <title>What factors impact the rating of a book?</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
-    div {
-      display: flex;
-      justify-content: center;
-    }
-
     .gridlines line {
-      stroke: #bbb;
+      stroke: #d9bca3;
     }
 
     .gridlines .domain {
-      stroke: #bbb;
+      stroke: #d9bca3;
     }
 
     body,
     html {
-      /* display: flex; */
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 30px;
+      padding: 0;
+      margin: 0;
+      background-color: #362118;
+      font-family: 'Optima', sans-serif;
     }
 
     button {
       padding: 10px;
-      border-radius: 5px;
-      border: 1px solid gray;
+      margin: 15px 2px 15px 2px;
+      border: 1px solid #9d795e;
       transition: background-color 0.2s ease, transform 0.1s ease;
+      font-family: 'Optima', sans-serif;
+      font-size: 14px;
     }
 
     button:hover {
@@ -41,142 +37,162 @@
       /* Thicker border on hover */
     }
 
+    h2 {
+      color: #fdb872;
+      font-size: 1.5rem;
+    }
+
+    p {
+      color: #f5d9be;
+      font-size: 18px;
+    }
 
     .page-title {
       font-size: 2.5rem;
       font-weight: bold;
       text-align: center;
-      margin: 20px;
-      padding: 20px;
-      background-color: #f5f5f5;
-      color: #333;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+      margin: auto;
+      padding: 30px;
+      background-color: #f5d9be;
+      color: #362118;
+      width: 80vw;
+    }
+
+    .main {
+      background-color: #5e4336;
+      width: 80vw;
+      padding: 30px;
+      margin: auto;
+    }
+
+    .scatterplot {
+      display: flex;
+      margin: 10px 50px 10px 50px;
+    }
+
+    #dropdown {
+      background-color: #f5d9be;
+      font-family: 'Optima', sans-serif;
+      font-size: 20px;
+      padding: 10px;
+      margin: 10px 20px 10px 20px;
     }
   </style>
 </head>
 
 <body>
-  <h1 class="page-title">What factors impact the rating of a book?</h1>
-  <div>
-    <svg id="shelf" height="630" width="900" style="border: 1px solid black;">
-      <image x="-45" y="-20" height="700" width="950" href="shelf_bg.jpg" />
+  <h1 class="page-title">Key Factors That Influence Book Ratings</h1>
+  <div class="main">
+    <h2 style="margin-left: 50px">Top Rated Books by Genre</h2>
+    <p style="margin: 20px 50px 20px 50px">Our bookshelf visualization shows how the ratings of books compare between
+      genres. The average rating of our
+      dataset was calculated for each genre and sorted so that the top shelf has the highest-rated genre and the bottom
+      shelf has the lowest-rated genre. The higher-rated books are taller and have a darker hue, while the lower-rated
+      books are shorter and have a lighter hue, as shown in the legend above. However, it's important
+      to note that this correlation does not imply causation, which means the genre doesn't necessarily positively or
+      negatively impact the rating of a book. It appears
+      that historical fiction has the highest-rated books on average, and mystery has the lowest. </p>
+    <svg id="shelf" height="650" width="900" style="display: block; margin: auto">
+      <image x="-45" y="-25" height="710" width="950" href="shelf_bg.jpg" />
       <g fill="#5e4336">
 
         <!-- Shelf backs -->
-        <rect x="180" y="80" width="550" height="100" fill="#9d795e" />
-        <rect x="180" y="180" width="550" height="100" fill="#9d795e" />
-        <rect x="180" y="280" width="550" height="100" fill="#9d795e" />
-        <rect x="180" y="380" width="550" height="100" fill="#9d795e" />
-        <rect x="180" y="480" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="90" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="190" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="290" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="390" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="490" width="550" height="100" fill="#9d795e" />
 
         <!-- Shelf pillars -->
-        <rect x="180" y="80" width="25" height="500" />
-        <rect x="705" y="80" width="25" height="500" />
+        <rect x="180" y="90" width="25" height="500" />
+        <rect x="705" y="90" width="25" height="500" />
 
         <!-- Horizontal shelves -->
-        <rect x="180" y="80" width="550" height="25" />
-        <rect x="180" y="180" width="550" height="25" />
-        <rect x="180" y="280" width="550" height="25" />
-        <rect x="180" y="380" width="550" height="25" />
-        <rect x="180" y="480" width="550" height="25" />
-        <rect x="180" y="580" width="550" height="25" />
+        <rect x="180" y="90" width="550" height="25" />
+        <rect x="180" y="190" width="550" height="25" />
+        <rect x="180" y="290" width="550" height="25" />
+        <rect x="180" y="390" width="550" height="25" />
+        <rect x="180" y="490" width="550" height="25" />
+        <rect x="180" y="590" width="550" height="25" />
 
       </g>
     </svg>
 
+    <br>
+
+    <script>
+      const legendSvg = d3.select("#shelf");
+      const legendWidth = +legendSvg.attr("width");
+      const legendHeight = +legendSvg.attr("height");
+
+      const lowRatedColor = "white";
+      const highRatedColor = "#3b3b3b";
+
+      const bookWidthLegend = 10;
+      const bookHeightLegendMin = 20;
+      const bookHeightLegendMax = 50;
+      const padding = 20;
+
+      const legendXStart = legendWidth - 150;
+      const legendYStart = padding;
+
+      // Low-rated book label
+      legendSvg.append("text")
+        .attr("x", 225)
+        .attr("y", 55)
+        .style("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Low-rated book:");
+
+      // Low-rated book rectangle
+      legendSvg.append("rect")
+        .attr("x", 225)
+        .attr("y", 65)
+        .attr("width", bookWidthLegend)
+        .attr("height", bookHeightLegendMin)
+        .style("fill", lowRatedColor)
+        .style("stroke", "black");
+
+      // High-rated book label
+      legendSvg.append("text")
+        .attr("x", 325)
+        .attr("y", 25)
+        .style("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("High-rated book:");
+
+      // High-rated book rectangle
+      legendSvg.append("rect")
+        .attr("x", 325)
+        .attr("y", 35)
+        .attr("width", bookWidthLegend)
+        .attr("height", bookHeightLegendMax)
+        .style("fill", highRatedColor)
+        .style("stroke", "black");
+    </script>
+
+    <div class="scatterplot">
+      <div>
+        <div style="display:flex">
+          <h2>Select a Factor</h2>
+          <select id="dropdown"></select>
+        </div>
+
+        <p style="margin-right: 30px" id="observations"></p>
+      </div>
+      <div>
+        <button id="Historical_Fiction">Historical Fiction</button>
+        <button id="Romance">Romance</button>
+        <button id="Nonfiction">Nonfiction</button>
+        <button id="Science_Fiction">Science Fiction</button>
+        <button id="Mystery">Mystery</button>
+        <button id="All_Genres">All Genres</button>
+
+        <svg id="scatterplot" width="606" height="500"></svg>
+      </div>
+    </div>
 
   </div>
-  <p>Our bookshelf visualization shows how the ratings of books compare between genres. The average rating of our
-    dataset was calculated for each genre and sorted so that the top shelf has the highest-rated genre and the bottom
-    shelf has the lowest-rated genre. The higher-rated books are taller and have a darker hue, while the lower-rated
-    books are shorter and have a lighter hue, as shown in the legend above. However, it's important
-    to note that this correlation does not imply causation, which means the genre doesn't necessarily positively or
-    negatively impact the rating of a book. It appears
-    that historical fiction has the highest-rated books on average, and mystery has the lowest. </p>
-
-  <script>
-    const legendSvg = d3.select("#shelf");
-    const legendWidth = +legendSvg.attr("width");
-    const legendHeight = +legendSvg.attr("height");
-
-    const lowRatedColor = "white";
-    const highRatedColor = "#3b3b3b";
-
-    const bookWidthLegend = 10;
-    const bookHeightLegendMin = 20;
-    const bookHeightLegendMax = 70;
-    const padding = 20;
-
-    const legendXStart = legendWidth - 150;
-    const legendYStart = padding;
-
-    // Low-rated book label
-    legendSvg.append("text")
-      .attr("x", 300)
-      .attr("y", 65)
-      .style("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("Low-rated book:");
-
-    // Low-rated book rectangle
-    legendSvg.append("rect")
-      .attr("x", 350)
-      .attr("y", 55)
-      .attr("width", bookWidthLegend)
-      .attr("height", bookHeightLegendMin)
-      .style("fill", lowRatedColor)
-      .style("stroke", "black");
-
-    // High-rated book label
-    legendSvg.append("text")
-      .attr("x", 450)
-      .attr("y", 65)
-      .style("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("High-rated book:");
-
-    // High-rated book rectangle
-    legendSvg.append("rect")
-      .attr("x", 500)
-      .attr("y", 5)
-      .attr("width", bookWidthLegend)
-      .attr("height", bookHeightLegendMax)
-      .style("fill", highRatedColor)
-      .style("stroke", "black");
-  </script>
-
-
-  <h2>The scatterplots for the data: </h2>
-  <select id="dropdown"></select>
-  <div>
-    <button id="Historical_Fiction">Historical Fiction</button>
-    <button id="Romance">Romance</button>
-    <button id="Nonfiction">Nonfiction</button>
-    <button id="Science_Fiction">Science Fiction</button>
-    <button id="Mystery">Mystery</button>
-    <button id="All_Genres">All Genres</button>
-  </div>
-  <div>
-    <svg id="scatterplot" width="600" height="500"></svg>
-  </div>
-  <!-- <div>
-    <svg id="num_pages" width="600" height="600"></svg>
-  </div>
-  <div>
-    <svg id="publication_date" width="600" height="600"></svg>
-  </div>
-  <div>
-    <svg id="price" width="600" height="600"></svg>
-  </div>
-  <div>
-    <svg id="number_of_awards" width="600" height="600"></svg>
-  </div>
-  <div>
-    <svg id="authors" width="600" height="600"></svg>
-    <text id="label" x="50" y="5" text-anchor="start" alignment-baseline="hanging"></text>
-  </div> -->
 
   <script>
     const svg = d3.select("svg");
@@ -211,8 +227,6 @@
         .style("font-weight", "bold")
         .style("fill", "white");
     }
-
-
 
     // helper function: one compact function that parses all dates/times/years
     // possible toFormats: 'year' i.e. 2024, 'date' i.e. Tue Jun 13 2017 00:00:00 GMT-0400 (Eastern Daylight Time) 
@@ -262,8 +276,8 @@
         .attr("height", labelHeight)
         .attr("rx", 10)
         .attr("ry", 10)
-        .attr("fill", "#dfd0c0")
-        .attr("stroke", "black");
+        .attr("fill", "#f5d9be")
+        .attr("stroke", "#362119");
 
       label.append("text")
         .attr("id", "labelTitle")
@@ -328,9 +342,11 @@
     const requestData = async function () {
       let data = await d3.csv('data/goodreads_top100_from1980to2023_final.csv');
       let data_awards = await d3.csv('data/books_awards_chars.csv');
+      let plot_observations = await d3.json('data/plot_observations.json');
 
       console.log("data", data);
       console.log("data_awards", data_awards);
+      console.log("plot observations", plot_observations);
 
       let num_genres = new Map() // map of genres to # of books
       let genres_books = new Map()
@@ -513,7 +529,7 @@
         .data(d => shelfMap.get(d[0]))
         .join("rect")
         .attr("x", (d, i) => 210 + i * (bookWidth + spaceBetweenBooks))
-        .attr("y", d => shelfHeight - 30 - heightScale(d.rating_score))
+        .attr("y", d => shelfHeight - 20 - heightScale(d.rating_score))
         .attr("width", bookWidth)
         .attr("height", d => heightScale(d.rating_score))
         .attr("fill", d => {
@@ -529,7 +545,7 @@
         .data(d => shelfMap.get(d[0]))
         .join("circle")
         .attr("cx", (d, i) => 210 + i * (bookWidth + spaceBetweenBooks) + bookWidth / 2)
-        .attr("cy", d => shelfHeight - 35)
+        .attr("cy", d => shelfHeight - 25)
         .attr("r", 3)
         .attr("stroke", "black")
         .attr("stroke-width", 0.3)
@@ -540,19 +556,11 @@
             : "hidden";
         });
 
-      let shelfposition = 198;
+      let shelfposition = 208;
       genreRatingsArr.forEach(genre => {
         addText(genre[0], shelfposition);
         shelfposition += 100;
       });
-
-      // adding Title to visualization
-      svg.append("text")
-        .attr("x", 10)
-        .attr("y", 40)
-        .text("Ratings vs. Genre:")
-        .style("font-size", "21px")
-        .style("font-weight", "bold");
 
       // created tan label when mouse hovers over book
       const label = createHoverLabel(
@@ -612,6 +620,7 @@
       // ----- SCATTERPLOTS -----
 
       const plots = ['num_pages', 'publication_date', 'price', 'number_of_awards'];
+      plt_text = d3.select("#observations");
 
       // add options to the dropdown
       d3.select("#dropdown")
@@ -622,20 +631,16 @@
         .text(d => formatLabel(d, 'label')) // text showed in the menu
         .attr("value", d => d);  // value returned by the button
 
+      plt_text.text(plot_observations['num_pages'])
       plot_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
 
       // Listen to the dropdown
       d3.select("#dropdown").on("change", function (d) {
         selected = this.value;
-        // console.log(selected);
+        plt_text.text(plot_observations[selected]);
         plot_chartArea = updateChart(selected, uniqueBooks, awards_books, genreScale);
         addButtonAction(genres, genreScale, [plot_chartArea]);
       })
-
-      // num_pages_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
-      // publication_date_chartArea = createScatterplot(uniqueBooks, awards_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
-      // price_chartArea = createScatterplot(uniqueBooks, awards_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
-      // awards_chartArea = createScatterplot(awards_books, awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
 
       // is a list in case we want more charts at the same time
       const chartAreas = [plot_chartArea];
@@ -700,9 +705,16 @@
       const svg = d3.select('#scatterplot');
       const width = svg.attr('width');
       const height = svg.attr('height');
-      const margins = { top: 40, right: 20, bottom: 60, left: 55 };
+      const margins = { top: 50, right: 30, bottom: 60, left: 60 };
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
+
+      svg.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "#fcebe3");
 
       let chartArea = svg.append('g')
         .attr('transform', `translate(${margins.left},${margins.top})`);
@@ -711,7 +723,7 @@
         .attr("class", "title")
         .attr("text-anchor", "middle")
         .attr("x", chartWidth / 2 + margins.left)
-        .attr("y", 20)
+        .attr("y", 30)
         .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"))
         .style("font-size", 18)
         .style("font-weight", "bold");
@@ -755,7 +767,7 @@
         .attr("class", "y label")
         .attr("text-anchor", "middle")
         .attr("x", -chartHeight / 2 - margins.top)
-        .attr("y", 20)
+        .attr("y", 25)
         .attr("transform", "rotate(-90)")
         .text(formatLabel(y_var, "axis"));
 
@@ -887,12 +899,6 @@
         else {
           label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 110})`);
         }
-
-        // for debugging purposes
-        // console.log(circle.node());
-        // console.log("cx:", circle.attr('cx'));
-        // console.log("cy:", circle.attr('cy'));
-
       });
 
       circles.on("mouseout", function () {
@@ -911,223 +917,7 @@
       return chartArea;
     }
 
-    // function createScatterplot(books, awards_books, x_var, x_scale_func, y_var, genreScale) {
-    //   // General dimensions of every scatterplot are the same
-    //   const svg = d3.select('#' + x_var);
-    //   const width = svg.attr('width');
-    //   const height = svg.attr('height');
-    //   const margins = { top: 40, right: 20, bottom: 60, left: 55 };
-    //   const chartWidth = width - margins.left - margins.right;
-    //   const chartHeight = height - margins.top - margins.bottom;
-
-    //   let chartArea = svg.append('g')
-    //     .attr('transform', `translate(${margins.left},${margins.top})`);
-
-    //   svg.append("text")
-    //     .attr("class", "title")
-    //     .attr("text-anchor", "middle")
-    //     .attr("x", chartWidth / 2 + margins.left)
-    //     .attr("y", 20)
-    //     .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"));
-
-    //   // create scales
-    //   const xExtent = d3.extent(books, d => d[x_var]);
-    //   const xScale = x_scale_func.domain(xExtent).range([0, chartWidth]);
-    //   const yExtent = d3.extent(books, d => d[y_var]);
-    //   const yScale = d3.scaleLinear().domain(yExtent).range([chartHeight, 0]);
-
-    //   let leftGridlines = d3.axisLeft(yScale)
-    //     .tickSize(-chartWidth - 10)
-    //     .tickFormat('');
-    //   svg.append('g')
-    //     .attr('class', 'y gridlines')
-    //     .attr('transform', `translate(${margins.left},${margins.top})`)
-    //     .call(leftGridlines);
-
-    //   let bottomGridlines = d3.axisBottom(xScale)
-    //     .tickSize(-chartHeight - 10)
-    //     .tickFormat('');
-    //   svg.append('g')
-    //     .attr('class', 'x gridlines')
-    //     .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
-    //     .call(bottomGridlines);
-
-    //   let leftAxis = d3.axisLeft(yScale);
-    //   svg.append('g')
-    //     .attr('class', 'y axis')
-    //     .attr('transform', `translate(${margins.left},${margins.top})`)
-    //     .call(leftAxis);
-
-    //   let bottomAxis = d3.axisBottom(xScale);
-    //   svg.append('g')
-    //     .attr('class', 'x axis')
-    //     .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
-    //     .call(bottomAxis);
-
-    //   // adding axis titles
-    //   svg.append("text")
-    //     .attr("class", "y label")
-    //     .attr("text-anchor", "middle")
-    //     .attr("x", -chartHeight / 2 - margins.top)
-    //     .attr("y", 20)
-    //     .attr("transform", "rotate(-90)")
-    //     .text(formatLabel(y_var, "axis"));
-
-    //   svg.append("text")
-    //     .attr("class", "x label")
-    //     .attr("text-anchor", "middle")
-    //     .attr("x", chartWidth / 2 + margins.left)
-    //     .attr("y", height - 20)
-    //     .text(formatLabel(x_var, "axis"));
-
-    //   // Zoom
-    //   let viewport = chartArea.append("g")
-
-    //   let circles = viewport.selectAll("circle")
-    //     .data(books)
-    //     .join("circle")
-    //     .attr("id", d => d['title'].replaceAll(' ', '_'))
-    //     .attr("class", d => d['top_genre'].replace(' ', '_'))
-    //     .attr("cx", d => xScale(d[x_var]))
-    //     .attr("cy", d => yScale(d[y_var]))
-    //     .attr("r", 5)
-    //     .style("fill", d => genreScale(d['top_genre']))
-    //     .style("opacity", 0.4);
-
-    //   chartArea.attr("clip-path", "url(#chartClip)");
-
-    //   var plotZoom = d3.zoom()
-    //     .scaleExtent([0.5, 20])
-    //     .on("zoom", plotZoomed);
-
-    //   svg.call(plotZoom)
-
-    //   svg.append("defs")
-    //     .lower()
-    //     .append("clipPath")
-    //     .attr("id", "chartClip")
-    //     .append("rect")
-    //     .attr("x", 0)
-    //     .attr("y", 0)
-    //     .attr("width", chartWidth)
-    //     .attr("height", chartHeight);
-
-    //   let zoomFactor = 1
-
-    //   function plotZoomed(event) {
-    //     viewport.attr("transform", event.transform);
-
-    //     leftAxis.scale(event.transform.rescaleX(yScale));
-    //     bottomAxis.scale(event.transform.rescaleX(xScale));
-
-    //     leftGridlines.scale(event.transform.rescaleY(yScale));
-    //     bottomGridlines.scale(event.transform.rescaleX(xScale));
-
-    //     svg.select("g.y.axis").call(leftAxis)
-    //     svg.select("g.x.axis").call(bottomAxis)
-    //     svg.select("g.y.gridlines").call(leftGridlines)
-    //     svg.select("g.x.gridlines").call(bottomGridlines)
-
-    //     zoomFactor = event.transform.k
-
-    //     viewport.selectAll("circle")
-    //       .attr("r", 5 / zoomFactor)
-    //   }
-
-
-    //   chartArea.raise();
-
-    //   // add label when hovering over circle
-    //   const label = createHoverLabel(
-    //     svg.append("g").style("visibility", "hidden"),
-    //     books,
-    //     awards_books);
-
-    //   circles.on("mouseover", function (event) {
-    //     let circle = d3.select(this);
-    //     let book = circle.datum();
-    //     let title = book['title'];
-    //     let authors = book['authors'];
-    //     let genre = book['top_genre'];
-    //     let xVarFormatted = formatLabel(x_var, 'label');
-    //     let xVarVal = book[x_var];
-    //     if (x_var == 'publication_date') {
-    //       xVarVal = parseTime(xVarVal, 'str');
-    //     } else if (x_var == 'price') {
-    //       xVarVal = "$" + xVarVal;
-    //     }
-    //     // let isbn = book['isbn']; // used as id for each circle
-
-    //     circle_x = circle.attr('cx');
-    //     circle_y = circle.attr('cy');
-
-    //     circle.raise()
-    //       .transition().duration(200)
-    //       .attr("r", 8 / zoomFactor)
-    //       .attr("stroke-width", 3 / zoomFactor)
-    //       .attr("stroke", d => darken(genreScale(d['top_genre']), 30))
-    //       .style("opacity", 1)
-    //       .style("fill", d => darken(genreScale(d['top_genre']), 10));
-
-    //     label.select("#labelTitle").text(`Title: ${textCutoff(book['title'], 30)}`);
-    //     label.select("#labelAuthors").text(`Author: ${textCutoff(book['authors'], 35)}`);
-    //     label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
-    //     label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
-    //     label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
-    //     if (book['awarded']) {
-    //       label.select("#labelAward").style('visibility', 'visible');
-    //     } else {
-    //       label.select("#labelAward").style('visibility', 'hidden');
-    //     }
-    //     label.style("visibility", "visible");
-
-    //     const [mouseX, mouseY] = d3.pointer(event, svg.node());
-
-    //     // let mouseXTrans
-
-    //     // top right of chart
-    //     if (mouseX > chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
-    //       label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 5})`);
-    //     }
-    //     // top left of chart
-    //     else if (mouseX < chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
-    //       label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 5})`);
-    //     }
-    //     // bottom right of chart
-    //     else if (mouseX > chartWidth / 2 + margins.left && mouseY > chartHeight / 2 + margins.bottom) {
-    //       label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 110})`);
-    //     }
-    //     // bottom left of chart
-    //     else {
-    //       label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 110})`);
-    //     }
-
-    //     // for debugging purposes
-    //     // console.log(circle.node());
-    //     // console.log("cx:", circle.attr('cx'));
-    //     // console.log("cy:", circle.attr('cy'));
-
-    //   });
-
-
-    //   circles.on("mouseout", function () {
-    //     let circle = d3.select(this);
-    //     circle.transition().duration(200)
-    //       .attr("r", 5 / zoomFactor)
-    //       .attr("stroke-width", 3 / zoomFactor)
-    //       .attr("stroke", "none")
-    //       .style("opacity", 0.4)
-    //       .style("fill", d => genreScale(d['top_genre']));
-
-    //     label.style("visibility", "hidden");
-    //     label.select("#labelAward").style('visibility', 'hidden');
-    //   });
-
-    //   return chartArea;
-    // }
-
     requestData();
-
 
   </script>
 </body>
