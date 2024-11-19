@@ -141,6 +141,7 @@
 
 
   <h2>The scatterplots for the data: </h2>
+  <select id="dropdown"></select>
   <div>
     <button id="Historical_Fiction">Historical Fiction</button>
     <button id="Romance">Romance</button>
@@ -189,7 +190,7 @@
       }
     }
 
-    // helper functioN: adds labels for each shelf which genre the books are
+    // helper function: adds labels for each shelf which genre the books are
     function addText(genre, shelfposition = 130) {
       svg.append("text")
         .attr("x", 60)
@@ -323,7 +324,7 @@
 
       let num_genres = new Map() // map of genres to # of books
       let genres_books = new Map()
-      let genres = ['Romance', 'Mystery', 'Historical Fiction', 'Science Fiction', 'Nonfiction']
+      let genres = ['Historical Fiction', 'Romance', 'Nonfiction', 'Science Fiction', 'Mystery']
 
       // The books where one of the genres is among the top 5 genres 
       let top_genre_books = []
@@ -402,6 +403,7 @@
         });
 
         d['authors'] = d['author'];
+        d['rating_score'] = d['rating'];
 
         // collect # of awards per book
         d['number_of_awards'] = d['awards'].slice(1, -1).split(',').length;
@@ -430,8 +432,8 @@
 
       // Genre color scale
       // colors based on d3.schemeTableau10, but ordered differently
-      // pink, orange, blue, purple, green
-      const genreColors = ['#E1575A', '#F28E2C', '#AF7AA1', '#58A14E', '#4F79A7'];
+      // pink, blue, purple, green, orange
+      const genreColors = ['#4F79A7', '#E1575A', '#58A14E', '#AF7AA1', '#F28E2C'];
       const genreScale = d3.scaleOrdinal(genres, genreColors);
 
       // subset of books to be added to the bookshelf
@@ -589,6 +591,18 @@
       });
 
       // ----- SCATTERPLOTS -----
+
+      const plots = ['num_pages', 'publication_date', 'price', 'number_of_awards'];
+
+      // add options to the dropdown
+      d3.select("#dropdown")
+        .selectAll('myOptions')
+        .data(plots)
+        .enter()
+        .append('option')
+        .text(d => formatLabel(d, 'label')) // text showed in the menu
+        .attr("value", d => d);  // value returned by the button
+
       num_pages_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
       publication_date_chartArea = createScatterplot(uniqueBooks, awards_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
       price_chartArea = createScatterplot(uniqueBooks, awards_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
