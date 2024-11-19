@@ -151,6 +151,9 @@
     <button id="All_Genres">All Genres</button>
   </div>
   <div>
+    <svg id="scatterplot" width="600" height="500"></svg>
+  </div>
+  <!-- <div>
     <svg id="num_pages" width="600" height="600"></svg>
   </div>
   <div>
@@ -165,7 +168,7 @@
   <div>
     <svg id="authors" width="600" height="600"></svg>
     <text id="label" x="50" y="5" text-anchor="start" alignment-baseline="hanging"></text>
-  </div>
+  </div> -->
 
   <script>
     const svg = d3.select("svg");
@@ -429,7 +432,7 @@
       })
 
       // Add awarded column
-      data.forEach( d => {
+      data.forEach(d => {
         if (awards_books.some(book2 => book2.title === d.title && book2.number_of_awards > 0)) {
           d['awarded'] = true
         } else {
@@ -612,14 +615,28 @@
         .text(d => formatLabel(d, 'label')) // text showed in the menu
         .attr("value", d => d);  // value returned by the button
 
-      num_pages_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
-      publication_date_chartArea = createScatterplot(uniqueBooks, awards_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
-      price_chartArea = createScatterplot(uniqueBooks, awards_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
-      awards_chartArea = createScatterplot(awards_books, awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
+      plot_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
 
+      // Listen to the dropdown
+      d3.select("#dropdown").on("change", function (d) {
+        selected = this.value;
+        // console.log(selected);
+        plot_chartArea = updateChart(selected, uniqueBooks, awards_books, genreScale);
+        addButtonAction(genres, genreScale, [plot_chartArea]);
+      })
 
-      const chartAreas = [num_pages_chartArea, publication_date_chartArea, price_chartArea, awards_chartArea];
+      // num_pages_chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
+      // publication_date_chartArea = createScatterplot(uniqueBooks, awards_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
+      // price_chartArea = createScatterplot(uniqueBooks, awards_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
+      // awards_chartArea = createScatterplot(awards_books, awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
 
+      // is a list in case we want more charts at the same time
+      const chartAreas = [plot_chartArea];
+
+      addButtonAction(genres, genreScale, chartAreas);
+    }
+
+    function addButtonAction(genres, genreScale, chartAreas) {
       // // legend buttons
       genres.forEach(genre => {
         const g = genre.replace(' ', '_');
@@ -630,7 +647,7 @@
             chartAreas.forEach(c => {
               c.selectAll("circle." + g)
                 // .transition().duration(1000)
-                .style("opacity", 0.6)
+                .style("opacity", 0.4)
                 .style("visibility", "visible");
 
               c.selectAll("circle:not(." + g + ")")
@@ -650,12 +667,30 @@
               .style("visibility", "visible");
           });
         });
+    }
 
+    function updateChart(selected, uniqueBooks, awards_books, genreScale) {
+      const svg = d3.select('#scatterplot');
+      svg.selectAll("*").remove();
+      let chartArea = null;
+      if (selected == 'num_pages') {
+        chartArea = createScatterplot(uniqueBooks, awards_books, 'num_pages', d3.scaleLinear(), 'rating_score', genreScale);
+      }
+      else if (selected == 'publication_date') {
+        chartArea = createScatterplot(uniqueBooks, awards_books, 'publication_date', d3.scaleTime(), 'rating_score', genreScale);
+      }
+      else if (selected == 'price') {
+        chartArea = createScatterplot(uniqueBooks, awards_books, 'price', d3.scaleLinear(), 'rating_score', genreScale);
+      }
+      else {
+        chartArea = createScatterplot(awards_books, awards_books, 'number_of_awards', d3.scaleLog(), 'rating', genreScale);
+      }
+      return chartArea;
     }
 
     function createScatterplot(books, awards_books, x_var, x_scale_func, y_var, genreScale) {
       // General dimensions of every scatterplot are the same
-      const svg = d3.select('#' + x_var);
+      const svg = d3.select('#scatterplot');
       const width = svg.attr('width');
       const height = svg.attr('height');
       const margins = { top: 40, right: 20, bottom: 60, left: 55 };
@@ -670,7 +705,9 @@
         .attr("text-anchor", "middle")
         .attr("x", chartWidth / 2 + margins.left)
         .attr("y", 20)
-        .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"));
+        .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"))
+        .style("font-size", 18)
+        .style("font-weight", "bold");
 
       // create scales
       const xExtent = d3.extent(books, d => d[x_var]);
@@ -851,7 +888,6 @@
 
       });
 
-
       circles.on("mouseout", function () {
         let circle = d3.select(this);
         circle.transition().duration(200)
@@ -867,6 +903,221 @@
 
       return chartArea;
     }
+
+    // function createScatterplot(books, awards_books, x_var, x_scale_func, y_var, genreScale) {
+    //   // General dimensions of every scatterplot are the same
+    //   const svg = d3.select('#' + x_var);
+    //   const width = svg.attr('width');
+    //   const height = svg.attr('height');
+    //   const margins = { top: 40, right: 20, bottom: 60, left: 55 };
+    //   const chartWidth = width - margins.left - margins.right;
+    //   const chartHeight = height - margins.top - margins.bottom;
+
+    //   let chartArea = svg.append('g')
+    //     .attr('transform', `translate(${margins.left},${margins.top})`);
+
+    //   svg.append("text")
+    //     .attr("class", "title")
+    //     .attr("text-anchor", "middle")
+    //     .attr("x", chartWidth / 2 + margins.left)
+    //     .attr("y", 20)
+    //     .text(formatLabel(y_var, "title") + " vs. " + formatLabel(x_var, "title"));
+
+    //   // create scales
+    //   const xExtent = d3.extent(books, d => d[x_var]);
+    //   const xScale = x_scale_func.domain(xExtent).range([0, chartWidth]);
+    //   const yExtent = d3.extent(books, d => d[y_var]);
+    //   const yScale = d3.scaleLinear().domain(yExtent).range([chartHeight, 0]);
+
+    //   let leftGridlines = d3.axisLeft(yScale)
+    //     .tickSize(-chartWidth - 10)
+    //     .tickFormat('');
+    //   svg.append('g')
+    //     .attr('class', 'y gridlines')
+    //     .attr('transform', `translate(${margins.left},${margins.top})`)
+    //     .call(leftGridlines);
+
+    //   let bottomGridlines = d3.axisBottom(xScale)
+    //     .tickSize(-chartHeight - 10)
+    //     .tickFormat('');
+    //   svg.append('g')
+    //     .attr('class', 'x gridlines')
+    //     .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
+    //     .call(bottomGridlines);
+
+    //   let leftAxis = d3.axisLeft(yScale);
+    //   svg.append('g')
+    //     .attr('class', 'y axis')
+    //     .attr('transform', `translate(${margins.left},${margins.top})`)
+    //     .call(leftAxis);
+
+    //   let bottomAxis = d3.axisBottom(xScale);
+    //   svg.append('g')
+    //     .attr('class', 'x axis')
+    //     .attr('transform', `translate(${margins.left},${chartHeight + margins.top})`)
+    //     .call(bottomAxis);
+
+    //   // adding axis titles
+    //   svg.append("text")
+    //     .attr("class", "y label")
+    //     .attr("text-anchor", "middle")
+    //     .attr("x", -chartHeight / 2 - margins.top)
+    //     .attr("y", 20)
+    //     .attr("transform", "rotate(-90)")
+    //     .text(formatLabel(y_var, "axis"));
+
+    //   svg.append("text")
+    //     .attr("class", "x label")
+    //     .attr("text-anchor", "middle")
+    //     .attr("x", chartWidth / 2 + margins.left)
+    //     .attr("y", height - 20)
+    //     .text(formatLabel(x_var, "axis"));
+
+    //   // Zoom
+    //   let viewport = chartArea.append("g")
+
+    //   let circles = viewport.selectAll("circle")
+    //     .data(books)
+    //     .join("circle")
+    //     .attr("id", d => d['title'].replaceAll(' ', '_'))
+    //     .attr("class", d => d['top_genre'].replace(' ', '_'))
+    //     .attr("cx", d => xScale(d[x_var]))
+    //     .attr("cy", d => yScale(d[y_var]))
+    //     .attr("r", 5)
+    //     .style("fill", d => genreScale(d['top_genre']))
+    //     .style("opacity", 0.4);
+
+    //   chartArea.attr("clip-path", "url(#chartClip)");
+
+    //   var plotZoom = d3.zoom()
+    //     .scaleExtent([0.5, 20])
+    //     .on("zoom", plotZoomed);
+
+    //   svg.call(plotZoom)
+
+    //   svg.append("defs")
+    //     .lower()
+    //     .append("clipPath")
+    //     .attr("id", "chartClip")
+    //     .append("rect")
+    //     .attr("x", 0)
+    //     .attr("y", 0)
+    //     .attr("width", chartWidth)
+    //     .attr("height", chartHeight);
+
+    //   let zoomFactor = 1
+
+    //   function plotZoomed(event) {
+    //     viewport.attr("transform", event.transform);
+
+    //     leftAxis.scale(event.transform.rescaleX(yScale));
+    //     bottomAxis.scale(event.transform.rescaleX(xScale));
+
+    //     leftGridlines.scale(event.transform.rescaleY(yScale));
+    //     bottomGridlines.scale(event.transform.rescaleX(xScale));
+
+    //     svg.select("g.y.axis").call(leftAxis)
+    //     svg.select("g.x.axis").call(bottomAxis)
+    //     svg.select("g.y.gridlines").call(leftGridlines)
+    //     svg.select("g.x.gridlines").call(bottomGridlines)
+
+    //     zoomFactor = event.transform.k
+
+    //     viewport.selectAll("circle")
+    //       .attr("r", 5 / zoomFactor)
+    //   }
+
+
+    //   chartArea.raise();
+
+    //   // add label when hovering over circle
+    //   const label = createHoverLabel(
+    //     svg.append("g").style("visibility", "hidden"),
+    //     books,
+    //     awards_books);
+
+    //   circles.on("mouseover", function (event) {
+    //     let circle = d3.select(this);
+    //     let book = circle.datum();
+    //     let title = book['title'];
+    //     let authors = book['authors'];
+    //     let genre = book['top_genre'];
+    //     let xVarFormatted = formatLabel(x_var, 'label');
+    //     let xVarVal = book[x_var];
+    //     if (x_var == 'publication_date') {
+    //       xVarVal = parseTime(xVarVal, 'str');
+    //     } else if (x_var == 'price') {
+    //       xVarVal = "$" + xVarVal;
+    //     }
+    //     // let isbn = book['isbn']; // used as id for each circle
+
+    //     circle_x = circle.attr('cx');
+    //     circle_y = circle.attr('cy');
+
+    //     circle.raise()
+    //       .transition().duration(200)
+    //       .attr("r", 8 / zoomFactor)
+    //       .attr("stroke-width", 3 / zoomFactor)
+    //       .attr("stroke", d => darken(genreScale(d['top_genre']), 30))
+    //       .style("opacity", 1)
+    //       .style("fill", d => darken(genreScale(d['top_genre']), 10));
+
+    //     label.select("#labelTitle").text(`Title: ${textCutoff(book['title'], 30)}`);
+    //     label.select("#labelAuthors").text(`Author: ${textCutoff(book['authors'], 35)}`);
+    //     label.select("#labelGenre").text(`Genre: ${book['top_genre']}`);
+    //     label.select("#labelRating").text(`Rating: ${book['rating_score']}`);
+    //     label.select("#labelXVar").text(`${xVarFormatted}: ${xVarVal}`);
+    //     if (book['awarded']) {
+    //       label.select("#labelAward").style('visibility', 'visible');
+    //     } else {
+    //       label.select("#labelAward").style('visibility', 'hidden');
+    //     }
+    //     label.style("visibility", "visible");
+
+    //     const [mouseX, mouseY] = d3.pointer(event, svg.node());
+
+    //     // let mouseXTrans
+
+    //     // top right of chart
+    //     if (mouseX > chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
+    //       label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 5})`);
+    //     }
+    //     // top left of chart
+    //     else if (mouseX < chartWidth / 2 + margins.left && mouseY < chartHeight / 2 + margins.bottom) {
+    //       label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 5})`);
+    //     }
+    //     // bottom right of chart
+    //     else if (mouseX > chartWidth / 2 + margins.left && mouseY > chartHeight / 2 + margins.bottom) {
+    //       label.attr("transform", `translate(${mouseX - 275}, ${mouseY - 110})`);
+    //     }
+    //     // bottom left of chart
+    //     else {
+    //       label.attr("transform", `translate(${mouseX + 25}, ${mouseY - 110})`);
+    //     }
+
+    //     // for debugging purposes
+    //     // console.log(circle.node());
+    //     // console.log("cx:", circle.attr('cx'));
+    //     // console.log("cy:", circle.attr('cy'));
+
+    //   });
+
+
+    //   circles.on("mouseout", function () {
+    //     let circle = d3.select(this);
+    //     circle.transition().duration(200)
+    //       .attr("r", 5 / zoomFactor)
+    //       .attr("stroke-width", 3 / zoomFactor)
+    //       .attr("stroke", "none")
+    //       .style("opacity", 0.4)
+    //       .style("fill", d => genreScale(d['top_genre']));
+
+    //     label.style("visibility", "hidden");
+    //     label.select("#labelAward").style('visibility', 'hidden');
+    //   });
+
+    //   return chartArea;
+    // }
 
     requestData();
 
