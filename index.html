@@ -60,20 +60,28 @@
 <body>
   <h1 class="page-title">What factors impact the rating of a book?</h1>
   <div>
-    <svg id="shelf" height="605" width="600" style="border: 1px solid black;">
-      <g stroke="#6e2c00" fill="#6e2c00">
+    <svg id="shelf" height="630" width="900" style="border: 1px solid black;">
+      <image x="-45" y="-20" height="700" width="950" href="shelf_bg.jpg" />
+      <g fill="#5e4336">
+
+        <!-- Shelf backs -->
+        <rect x="180" y="80" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="180" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="280" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="380" width="550" height="100" fill="#9d795e" />
+        <rect x="180" y="480" width="550" height="100" fill="#9d795e" />
 
         <!-- Shelf pillars -->
-        <rect x="30" y="80" width="25" height="500" />
-        <rect x="555" y="80" width="25" height="500" />
+        <rect x="180" y="80" width="25" height="500" />
+        <rect x="705" y="80" width="25" height="500" />
 
         <!-- Horizontal shelves -->
-        <rect x="30" y="80" width="550" height="25" />
-        <rect x="30" y="180" width="550" height="25" />
-        <rect x="30" y="280" width="550" height="25" />
-        <rect x="30" y="380" width="550" height="25" />
-        <rect x="30" y="480" width="550" height="25" />
-        <rect x="30" y="580" width="550" height="25" />
+        <rect x="180" y="80" width="550" height="25" />
+        <rect x="180" y="180" width="550" height="25" />
+        <rect x="180" y="280" width="550" height="25" />
+        <rect x="180" y="380" width="550" height="25" />
+        <rect x="180" y="480" width="550" height="25" />
+        <rect x="180" y="580" width="550" height="25" />
 
       </g>
     </svg>
@@ -177,7 +185,7 @@
 
     const spaceBetweenBooks = 1;
     const booksPerShelf = 50;
-    const bookWidth = (width - 2 * 55) / booksPerShelf - 1;
+    const bookWidth = (width - 4 * 102) / booksPerShelf - 1;
     const shelfHeight = 100;
     const minHeight = bookWidth * 2;
     const maxHeight = shelfHeight - 25;
@@ -196,7 +204,7 @@
     // helper function: adds labels for each shelf which genre the books are
     function addText(genre, shelfposition = 130) {
       svg.append("text")
-        .attr("x", 60)
+        .attr("x", 210)
         .attr("y", shelfposition)
         .text(genre)
         .style("font-size", "14px")
@@ -221,7 +229,6 @@
       }
       return parser(date);
     }
-
 
     // helper function: darken a color
     // inspired by lighten(color) from Prof. Rzeszotarski
@@ -494,8 +501,8 @@
       const maxRatingAll = d3.max(data, d => d.rating_score);
       const bookLightness = d3.scaleLinear().domain([minRatingAll, maxRatingAll])
         .range([1.5, 0.1])
-      // add books to the shelf
 
+      // add books to the shelf
       let shelves = svg.selectAll("shelf")
         .data(genreRatingsArr)
         .join("g")
@@ -505,7 +512,7 @@
       let rectangles = shelves.selectAll("rect")
         .data(d => shelfMap.get(d[0]))
         .join("rect")
-        .attr("x", (d, i) => 60 + i * (bookWidth + spaceBetweenBooks))
+        .attr("x", (d, i) => 210 + i * (bookWidth + spaceBetweenBooks))
         .attr("y", d => shelfHeight - 30 - heightScale(d.rating_score))
         .attr("width", bookWidth)
         .attr("height", d => heightScale(d.rating_score))
@@ -521,7 +528,7 @@
       shelves.selectAll("circle") // Select circles within shelves
         .data(d => shelfMap.get(d[0]))
         .join("circle")
-        .attr("cx", (d, i) => 60 + i * (bookWidth + spaceBetweenBooks) + bookWidth / 2)
+        .attr("cx", (d, i) => 210 + i * (bookWidth + spaceBetweenBooks) + bookWidth / 2)
         .attr("cy", d => shelfHeight - 35)
         .attr("r", 3)
         .attr("stroke", "black")
