@@ -523,7 +523,7 @@
         .data(genreRatingsArr)
         .join("g")
         .attr("class", "shelf")
-        .attr("transform", (d, i) => `translate(0, ${115 + i * shelfHeight})`);
+        .attr("transform", (d, i) => `translate(0, ${110 + i * shelfHeight})`);
 
       let rectangles = shelves.selectAll("rect")
         .data(d => shelfMap.get(d[0]))
@@ -884,11 +884,11 @@
         }
 
         if (awarded) {
-            label.select("#labelAward").style('visibility', 'visible');
+          label.select("#labelAward").style('visibility', 'visible');
         } else {
-            label.select("#labelAward").style('visibility', 'hidden');
+          label.select("#labelAward").style('visibility', 'hidden');
         }
-    
+
         label.style("visibility", "visible");
 
         const [mouseX, mouseY] = d3.pointer(event, svg.node());
