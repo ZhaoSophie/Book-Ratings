@@ -31,9 +31,9 @@
     }
 
     button:hover {
-      border: 1px solid black;
+      border: 1px solid #362118;
       /* Darker blue when clicked */
-      transform: scale(0.98);
+      transform: scale(0.95);
       /* Thicker border on hover */
     }
 
@@ -220,10 +220,10 @@
     // helper function: adds labels for each shelf which genre the books are
     function addText(genre, shelfposition) {
       let lengths = new Map([["Historical Fiction", 100],
-                             ["Romance", 60],
-                             ["Nonfiction", 70],
-                             ["Science Fiction", 90],
-                             ["Mystery", 60]])
+      ["Romance", 60],
+      ["Nonfiction", 70],
+      ["Science Fiction", 90],
+      ["Mystery", 60]])
 
       svg.append("rect")
         .attr("width", lengths.get(genre))
@@ -233,7 +233,7 @@
         .style("fill", "#f0f0f0")
         .style("stroke", "#222222")
         .style("stroke-width", 1.5)
-      
+
       svg.append("text")
         .attr("x", 211)
         .attr("y", shelfposition)
@@ -263,22 +263,22 @@
 
       for (let i = 0; i < 4; i++) {
         svg.append("text")
-        .attr("x", 190)
-        .attr("y", yearposition + 13 + 10*i)
-        .text(firstYear[i])
-        .style("font-size", "10px")
-        .style("font-weight", "bold")
-        .style("fill", "black");
+          .attr("x", 190)
+          .attr("y", yearposition + 13 + 10 * i)
+          .text(firstYear[i])
+          .style("font-size", "10px")
+          .style("font-weight", "bold")
+          .style("fill", "black");
 
         svg.append("text")
-        .attr("x", 714)
-        .attr("y", yearposition + 13 + 10*i)
-        .text(lastYear[i])
-        .style("font-size", "10px")
-        .style("font-weight", "bold")
-        .style("fill", "black");
+          .attr("x", 714)
+          .attr("y", yearposition + 13 + 10 * i)
+          .text(lastYear[i])
+          .style("font-size", "10px")
+          .style("font-weight", "bold")
+          .style("fill", "black");
       }
-  }
+    }
 
 
     // helper function: one compact function that parses all dates/times/years
