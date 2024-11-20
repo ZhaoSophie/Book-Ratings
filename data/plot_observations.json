@@ -1,6 +1,6 @@
 {
-  "num_pages": "No strong correlation between the number of pages vs. ratings. ADD MORE HEREEE BLA HBLAH SDJHO OIDSOIJ FOJISDIOJFOIS D JIDJOIS",
-  "publication_date": "2010s romance boom cuz of Twilight, Fifty shades of gray. SOME MORE STUFF HERE BLAH BLAH OEJLF IOJSDOI WEEEEEE",
-  "price": "Non-ficton overall more expensive hmmmm. not much other pattern observed tho. AND YET WE MUST WRITE SOME MORE HEREEEEEE",
-  "number_of_awards": "More awards = less variance in ratings, which makes sense! This one probs the msot coherent one hahaha. NEED BETTER WAY OF PHRASING THIS"
+  "num_pages": "No strong correlation between the rating of a book and its number of pages. In general, the books sampled averaged around 300-400 pages and the ratings were rather evenly distributed. It may be interesting to note that different genres have slightly different average number of pages or have more or less variation in the length of the books.",
+  "publication_date": "No strong correlation between publication date and the rating of a book. An interesting observation: there was a significant boom of romance books in the early 2010s. This can be attributed to the mainstream success of books like “Twilight” and “Fifty Shades of Gray,” which brought increased attention and demand for the genre.",
+  "price": "No strong correlation between the rating of a book and its price. In general, historical fiction and nonfiction books seem to cost more at around $12-15 per book compared to romance, science fiction and mystery, which seem to trend around $10 most commonly. However, this does not appear to connect with the books / genres' rating.",
+  "number_of_awards": "The higher the number of awards, the less variance there is in the book ratings. All books that earned more than 15 awards have a rating of at least 4.0 (“Twilight” is an outlier in the trend). It seems that books that are more consistent in ratings receive a higher number of awards as both readers and award foundations agree on their quality."
 }
