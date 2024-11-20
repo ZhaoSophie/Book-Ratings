@@ -170,6 +170,20 @@
         .attr("height", bookHeightLegendMax)
         .style("fill", highRatedColor)
         .style("stroke", "black");
+
+      legendSvg.append("circle")
+        .attr("cx", 590)
+        .attr("cy", 75)
+        .attr("r", 3)
+        .style("fill", "gold")
+        .style("stroke", "black");
+
+      legendSvg.append("text")
+        .attr("x", 600)
+        .attr("y", 76)
+        .style("dominant-baseline", "middle")
+        .text("Award-winning book")
+        .style("font-size", "12px")
     </script>
 
     <div class="scatterplot">
